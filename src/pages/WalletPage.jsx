@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, CreditCard, Gift, Users, Star, X, Globe, Share2, Check, Crown, Film, Sparkles, Popcorn, Heart, Flame, Diamond, Zap, Play, Clock, Lock, Unlock } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, increment, collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { 
+  Wallet, CreditCard, Gift, Users, Star, X, Globe, Share2, Check, 
+  Crown, Film, Sparkles, Popcorn, Heart, Flame, Diamond, Zap, 
+  Play, Clock, Lock, Unlock, LogIn 
+} from 'lucide-react';
 
 // Pricing data by region
 const PRICING = {
@@ -53,7 +60,7 @@ const PRICING = {
   },
 };
 
-// Virtual gifts for movies (like TikTok gifts)
+// Coin gifts for movies
 const MOVIE_GIFTS = [
   { id: 'popcorn', name: 'Popcorn', icon: Popcorn, price: 100, color: '#fbbf24' },
   { id: 'heart', name: 'Heart', icon: Heart, price: 200, color: '#ef4444' },
@@ -76,67 +83,133 @@ const MOVIES = [
 ];
 
 export default function WalletPage() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState('NG');
-  const [balance, setBalance] = useState(12400);
-  const [points, setPoints] = useState(240);
-  const [referrals, setReferrals] = useState(7);
-  const [currentPlan, setCurrentPlan] = useState('Basic');
+  const [balance, setBalance] = useState(0);
+  const [points, setPoints] = useState(0);
+  const [referrals, setReferrals] = useState(0);
+  const [currentPlan, setCurrentPlan] = useState('Free');
+  const [watchTime, setWatchTime] = useState(0);
+  const [transactions, setTransactions] = useState([]);
   const [showModal, setShowModal] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [selectedGift, setSelectedGift] = useState(null);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [giftQuantity, setGiftQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
-  const [watchTime, setWatchTime] = useState(0);
-  const [transactions, setTransactions] = useState([
-    { id: 1, type: 'sub', desc: 'Premium Monthly', amount: '-₦6,000', date: 'May 1', icon: '👑' },
-    { id: 2, type: 'reward', desc: 'Referral Reward', amount: '+50 pts', date: 'Apr 28', icon: '🎁' },
-    { id: 3, type: 'gift', desc: 'Sent Crown to Black Panther', amount: '-₦10,000', date: 'Apr 25', icon: '👑' },
-    { id: 4, type: 'points', desc: 'Watch Time Bonus', amount: '+30 pts', date: 'Apr 20', icon: '⏱️' },
-  ]);
 
   const p = PRICING[region];
 
+  // Get user data from Firestore
   useEffect(() => {
-    const interval = setInterval(() => {
-      setWatchTime(prev => {
-        const newTime = prev + 1;
-        if (newTime % 30 === 0) {
-          setPoints(p => p + 1);
-          const newTransaction = {
-            id: Date.now(),
-            type: 'points',
-            desc: '30 Min Watch Bonus',
-            amount: '+1 pt',
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            icon: '⏱️'
-          };
-          setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
-        }
-        return newTime;
-      });
-    }, 60000);
-    return () => clearInterval(interval);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        await loadUserData(user.uid);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleRegionChange = (newRegion) => {
-    setRegion(newRegion);
+  const loadUserData = async (uid) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setBalance(data.balance || 0);
+        setPoints(data.points || 0);
+        setReferrals(data.referrals || 0);
+        setCurrentPlan(data.plan || 'Free');
+        setWatchTime(data.watchTime || 0);
+        setRegion(data.region || 'NG');
+      } else {
+        // Create new user document
+        await setDoc(doc(db, 'users', uid), {
+          balance: 0,
+          points: 0,
+          referrals: 0,
+          plan: 'Free',
+          watchTime: 0,
+          region: 'NG',
+          createdAt: serverTimestamp(),
+        });
+      }
+      loadTransactions(uid);
+    } catch (err) {
+      console.error('Error loading user data:', err);
+    }
   };
 
-  const handleSubscribe = (planName) => {
+  const loadTransactions = (uid) => {
+    const q = query(
+      collection(db, 'users', uid, 'transactions'),
+      orderBy('createdAt', 'desc'),
+      limit(20)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const txs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().createdAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Now'
+      }));
+      setTransactions(txs);
+    });
+    return unsubscribe;
+  };
+
+  const addTransaction = async (uid, type, desc, amount, icon) => {
+    try {
+      await addDoc(collection(db, 'users', uid, 'transactions'), {
+        type,
+        desc,
+        amount,
+        icon,
+        createdAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Error adding transaction:', err);
+    }
+  };
+
+  const updateUserField = async (field, value) => {
+    if (!currentUser) return;
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        [field]: value,
+      });
+    } catch (err) {
+      console.error('Error updating user:', err);
+    }
+  };
+
+  const handleRegionChange = async (newRegion) => {
+    setRegion(newRegion);
+    if (currentUser) {
+      await updateUserField('region', newRegion);
+    }
+  };
+
+  const handleSubscribe = async (planName) => {
+    if (!currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
     const price = planName === 'Basic' ? p.basic : p.premium;
     if (balance >= price) {
-      setBalance(prev => prev - price);
+      const newBalance = balance - price;
+      setBalance(newBalance);
       setCurrentPlan(planName);
-      const newTransaction = {
-        id: Date.now(),
-        type: 'sub',
-        desc: `${planName} Subscription`,
-        amount: `-${p.currency}${price.toLocaleString()}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        icon: planName === 'Premium' ? '👑' : '⭐'
-      };
-      setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
+      await updateUserField('balance', newBalance);
+      await updateUserField('plan', planName);
+      await addTransaction(
+        currentUser.uid,
+        'sub',
+        `${planName} Subscription`,
+        `-${p.currency}${price.toLocaleString()}`,
+        planName === 'Premium' ? '👑' : '⭐'
+      );
       setShowModal(null);
       alert(`Successfully subscribed to ${planName} plan!`);
     } else {
@@ -144,78 +217,81 @@ export default function WalletPage() {
     }
   };
 
-  const handleCancelSubscription = () => {
+  const handleCancelSubscription = async () => {
+    if (!currentUser) return;
     if (confirm('Are you sure? No refunds will be issued.')) {
-      setCurrentPlan('None');
-      const newTransaction = {
-        id: Date.now(),
-        type: 'cancel',
-        desc: 'Subscription Cancelled',
-        amount: 'No refund',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        icon: '❌'
-      };
-      setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
+      setCurrentPlan('Free');
+      await updateUserField('plan', 'Free');
+      await addTransaction(
+        currentUser.uid,
+        'cancel',
+        'Subscription Cancelled',
+        'No refund',
+        '❌'
+      );
       alert('Subscription cancelled. You can still watch until the end of your billing period.');
     }
   };
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
+    if (!currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
     const amount = parseFloat(topUpAmount);
     if (amount && amount > 0) {
-      setBalance(prev => prev + amount);
-      const newTransaction = {
-        id: Date.now(),
-        type: 'topup',
-        desc: 'Wallet Top Up',
-        amount: `+${p.currency}${amount.toLocaleString()}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        icon: '💳'
-      };
-      setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
+      const newBalance = balance + amount;
+      setBalance(newBalance);
+      await updateUserField('balance', newBalance);
+      await addTransaction(
+        currentUser.uid,
+        'topup',
+        'Wallet Top Up',
+        `+${p.currency}${amount.toLocaleString()}`,
+        '💳'
+      );
       setTopUpAmount('');
       setShowModal(null);
       alert(`Successfully added ${p.currency}${amount.toLocaleString()} to your wallet!`);
     }
   };
 
-  const handleSendGift = () => {
+  const handleSendGift = async () => {
+    if (!currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
     if (!selectedMovie || !selectedGift) return;
     const gift = MOVIE_GIFTS.find(g => g.id === selectedGift);
     const totalPrice = gift.price * giftQuantity;
-    const canPayWithBalance = balance >= totalPrice;
-    const canPayMixed = balance + points >= totalPrice;
 
-    if (canPayWithBalance) {
-      setBalance(prev => prev - totalPrice);
-    } else if (canPayMixed) {
-      const fromPoints = Math.min(points, totalPrice);
-      const fromBalance = totalPrice - fromPoints;
-      setPoints(prev => prev - fromPoints);
-      setBalance(prev => prev - fromBalance);
+    if (balance >= totalPrice) {
+      const newBalance = balance - totalPrice;
+      setBalance(newBalance);
+      await updateUserField('balance', newBalance);
+      await addTransaction(
+        currentUser.uid,
+        'gift',
+        `Sent ${giftQuantity}x ${gift.name} to ${selectedMovie.title}`,
+        `-${p.currency}${totalPrice.toLocaleString()}`,
+        gift.name
+      );
+      setShowModal(null);
+      setSelectedMovie(null);
+      setSelectedGift(null);
+      setGiftQuantity(1);
+      alert(`Sent ${giftQuantity}x ${gift.name} to "${selectedMovie.title}"!`);
     } else {
-      alert('Insufficient balance or points!');
-      return;
+      alert('Insufficient balance!');
     }
-
-    const newTransaction = {
-      id: Date.now(),
-      type: 'gift',
-      desc: `Sent ${giftQuantity}x ${gift.name} to ${selectedMovie.title}`,
-      amount: `-${p.currency}${totalPrice.toLocaleString()}`,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      icon: gift.name
-    };
-    setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
-    setShowModal(null);
-    setSelectedMovie(null);
-    setSelectedGift(null);
-    setGiftQuantity(1);
-    alert(`Sent ${giftQuantity}x ${gift.name} to "${selectedMovie.title}"!`);
   };
 
   const handleShareReferral = () => {
-    const referralCode = `PU${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    if (!currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
+    const referralCode = `PU${currentUser.uid.substring(0, 6).toUpperCase()}`;
     const referralLink = `https://pupaoriginals.com/join?ref=${referralCode}`;
     navigator.clipboard.writeText(referralLink).then(() => {
       setCopied(true);
@@ -223,40 +299,44 @@ export default function WalletPage() {
     });
   };
 
-  const handleReferralSignup = () => {
-    setReferrals(prev => {
-      const newCount = prev + 1;
-      if (newCount <= 10) {
-        setPoints(p => p + 10);
-        const newTransaction = {
-          id: Date.now(),
-          type: 'reward',
-          desc: 'Friend Joined via Referral',
-          amount: '+10 pts',
-          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          icon: '🎁'
-        };
-        setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
-        if (newCount === 10) {
-          alert('🎉 Congratulations! You invited 10 friends! Bonus unlocked!');
-        }
+  const handleReferralSignup = async () => {
+    if (!currentUser) return;
+    const newCount = referrals + 1;
+    setReferrals(newCount);
+    await updateUserField('referrals', newCount);
+    if (newCount <= 10) {
+      const newPoints = points + 10;
+      setPoints(newPoints);
+      await updateUserField('points', newPoints);
+      await addTransaction(
+        currentUser.uid,
+        'reward',
+        'Friend Joined via Referral',
+        '+10 pts',
+        '🎁'
+      );
+      if (newCount === 10) {
+        alert('🎉 Congratulations! You invited 10 friends! Bonus unlocked!');
       }
-      return newCount;
-    });
+    }
   };
 
-  const handleUnlockFeature = (featureName, cost) => {
+  const handleUnlockFeature = async (featureName, cost) => {
+    if (!currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
     if (points >= cost) {
-      setPoints(prev => prev - cost);
-      const newTransaction = {
-        id: Date.now(),
-        type: 'unlock',
-        desc: `Unlocked: ${featureName}`,
-        amount: `-${cost} pts`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        icon: '🔓'
-      };
-      setTransactions(prev => [newTransaction, ...prev].slice(0, 20));
+      const newPoints = points - cost;
+      setPoints(newPoints);
+      await updateUserField('points', newPoints);
+      await addTransaction(
+        currentUser.uid,
+        'unlock',
+        `Unlocked: ${featureName}`,
+        `-${cost} pts`,
+        '🔓'
+      );
       alert(`Unlocked ${featureName} for 24 hours!`);
     } else {
       alert(`Need ${cost} points! Watch more movies to earn points.`);
@@ -285,6 +365,32 @@ export default function WalletPage() {
       description: p.premiumName
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-pupa-bg flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-pupa-bg flex items-center justify-center px-5">
+        <div className="text-center">
+          <LogIn size={48} className="text-emerald-500 mx-auto mb-4" />
+          <h2 className="text-white text-xl font-semibold mb-2">Sign In Required</h2>
+          <p className="text-gray-400 text-sm mb-4">Please sign in to access your wallet</p>
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="px-6 py-3 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-pupa-bg pt-16 pb-24 page-enter">
@@ -369,7 +475,7 @@ export default function WalletPage() {
               <Crown size={18} className={currentPlan === 'Premium' ? 'text-yellow-400' : 'text-gray-400'} />
               <span className="text-white font-semibold text-sm">Current Plan: {currentPlan}</span>
             </div>
-            {currentPlan !== 'None' && (
+            {currentPlan !== 'Free' && (
               <button
                 onClick={handleCancelSubscription}
                 className="text-red-400 text-xs hover:text-red-300 transition-colors"
@@ -523,25 +629,29 @@ export default function WalletPage() {
         {/* Recent transactions */}
         <div>
           <h3 className="font-body font-semibold text-white mb-3">Recent Activity</h3>
-          <div className="space-y-3">
-            {transactions.map(t => (
-              <div key={t.id} className="flex items-center gap-3 py-2">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg">
-                  {t.icon}
+          {transactions.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center py-4">No transactions yet</p>
+          ) : (
+            <div className="space-y-3">
+              {transactions.map(t => (
+                <div key={t.id} className="flex items-center gap-3 py-2">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg">
+                    {t.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-sm font-body font-medium">{t.desc}</p>
+                    <p className="text-gray-500 text-xs">{t.date}</p>
+                  </div>
+                  <p
+                    className="text-sm font-mono font-medium"
+                    style={{ color: t.amount.startsWith('+') ? '#22c55e' : t.amount === 'No refund' ? '#ef4444' : '#f3f4f6' }}
+                  >
+                    {t.amount}
+                  </p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-white text-sm font-body font-medium">{t.desc}</p>
-                  <p className="text-gray-500 text-xs">{t.date}</p>
-                </div>
-                <p
-                  className="text-sm font-mono font-medium"
-                  style={{ color: t.amount.startsWith('+') ? '#22c55e' : t.amount === 'No refund' ? '#ef4444' : '#f3f4f6' }}
-                >
-                  {t.amount}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
