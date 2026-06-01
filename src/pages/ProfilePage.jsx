@@ -1,0 +1,152 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import {
+  User, Settings, Crown, Bell, Shield, ChevronRight,
+  LogOut, Star, Zap, Globe
+} from 'lucide-react';
+
+export default function ProfilePage() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  const MENU_ITEMS = [
+    { icon: Crown, label: 'Premium Membership', sub: 'Active · Renews Jun 1', color: '#facc15', badge: 'ACTIVE' },
+    { icon: Bell, label: 'Notifications', sub: 'Manage your alerts', color: '#a78bfa' },
+    { icon: Globe, label: 'Region & Language', sub: 'Nigeria (NG) · English', color: '#38bdf8' },
+    { icon: Shield, label: 'Privacy & Security', sub: 'Account protection', color: '#34d399' },
+    { icon: Settings, label: 'Settings', sub: 'App preferences', color: '#94a3b8' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-pupa-bg pt-16 pb-24 page-enter">
+      <div className="px-5 pt-4">
+        {/* Profile header */}
+        <div
+          className="relative rounded-2xl p-5 mb-6 overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #064e2a 0%, #041b11 100%)',
+            border: '1px solid rgba(22,163,74,0.2)',
+          }}
+        >
+          <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-yellow-500/5" />
+
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="relative">
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center font-display font-bold text-3xl text-white"
+                style={{
+                  background: 'linear-gradient(135deg, #16a34a, #064e2a)',
+                  border: '3px solid rgba(250,204,21,0.4)',
+                  boxShadow: '0 0 20px rgba(250,204,21,0.2)',
+                }}
+              >
+                P
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                <Crown size={12} className="text-black" />
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <h2 className="font-display font-semibold text-xl text-white mb-0.5">Pupa Member</h2>
+              <p className="text-gray-400 text-xs font-body mb-2">member@pupaoriginals.tv</p>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/25">
+                <Crown size={10} className="text-yellow-400" />
+                <span className="text-yellow-400 text-[10px] font-mono tracking-wide">PREMIUM</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-white/5">
+            {[
+              { label: 'Watched', value: '48', icon: Star },
+              { label: 'Points', value: '240', icon: Zap },
+              { label: 'Referrals', value: '7', icon: User },
+            ].map(({ label, value, icon: Icon }) => (
+              <div key={label} className="text-center">
+                <p className="font-display font-semibold text-lg text-white">{value}</p>
+                <p className="text-gray-500 text-[10px] font-body">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Referral progress */}
+        <div
+          className="rounded-xl p-4 mb-6"
+          style={{
+            background: 'rgba(250,204,21,0.05)',
+            border: '1px solid rgba(250,204,21,0.15)',
+          }}
+        >
+          <p className="text-white text-sm font-semibold mb-1 font-body">Referral Progress</p>
+          <p className="text-gray-400 text-xs mb-3">7 of 10 friends invited. 3 more for Premium reward!</p>
+          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: '70%',
+                background: 'linear-gradient(90deg, #16a34a, #facc15)',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Menu */}
+        <div className="space-y-2">
+          {MENU_ITEMS.map(({ icon: Icon, label, sub, color, badge }) => (
+            <button
+              key={label}
+              className="w-full flex items-center gap-3 p-4 rounded-xl glass-dark hover:border-emerald-800/50 transition-colors text-left"
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `${color}15` }}
+              >
+                <Icon size={18} style={{ color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-body font-medium">{label}</p>
+                <p className="text-gray-500 text-xs font-body">{sub}</p>
+              </div>
+              {badge && (
+                <span
+                  className="text-[9px] font-mono px-2 py-0.5 rounded-full mr-1"
+                  style={{ background: `${color}20`, color }}
+                >
+                  {badge}
+                </span>
+              )}
+              <ChevronRight size={16} className="text-gray-600 flex-shrink-0" />
+            </button>
+          ))}
+        </div>
+
+        {/* Log out - NOW WORKING */}
+        <button
+          onClick={handleLogout}
+          className="w-full mt-4 p-4 rounded-xl border border-red-500/20 text-red-400 flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors text-sm font-body"
+        >
+          <LogOut size={16} />
+          Sign Out
+        </button>
+
+        <p className="text-center text-gray-700 text-[10px] font-mono mt-6">
+          Pupa Originals v1.0.0 · © 2025 Pupa Media
+        </p>
+      </div>
+    </div>
+  );
+}
