@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import HeroBanner from '../components/HeroBanner';
 import ContentRow from '../components/ContentRow';
 import CategoriesGrid from '../components/CategoriesGrid';
@@ -7,24 +9,8 @@ import {
   TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS
 } from '../data/movies';
 
-// Continue watching mock
-const CONTINUE_WATCHING = [
-  {
-    id: 101, title: 'Blood of the Sahara', genre: 'Epic', year: 2025,
-    poster: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=300&q=80',
-    rating: '9.1', isPupa: true, progress: 65,
-  },
-  {
-    id: 102, title: 'Afrobeats Rising', genre: 'Documentary', year: 2025,
-    poster: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&q=80',
-    rating: '9.5', isPupa: true, progress: 30,
-  },
-  {
-    id: 103, title: 'Lagos After Dark', genre: 'Thriller', year: 2025,
-    poster: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300&q=80',
-    rating: '8.7', isPupa: true, progress: 82,
-  },
-];
+const auth = getAuth();
+const db = getFirestore();
 
 function ContinueWatchingCard({ movie, onClick }) {
   return (
@@ -65,29 +51,99 @@ function ContinueWatchingCard({ movie, onClick }) {
 }
 
 export default function HomePage({ onMovieSelect }) {
+  const [continueWatching, setContinueWatching] = useState([]);
+  const [loadingContinue, setLoadingContinue] = useState(true);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            // Get watchHistory from Firestore, fallback to empty array
+            const history = data.watchHistory || [];
+            setContinueWatching(history);
+          } else {
+            setContinueWatching([]);
+          }
+        } catch (err) {
+          console.error('Error loading watch history:', err);
+          setContinueWatching([]);
+        }
+      } else {
+        setContinueWatching([]);
+      }
+      setLoadingContinue(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Recently Added — sort by newest year first
+  const recentlyAdded = [...TRENDING, ...NEW_RELEASES]
+    .sort((a, b) => (b.year || 0) - (a.year || 0))
+    .slice(0, 10);
+
+  // Coming Soon — movies with year > current year or explicit comingSoon flag
+  const currentYear = new Date().getFullYear();
+  const comingSoon = [...PUPA_ORIGINALS, ...AFRICAN_HITS]
+    .filter(m => m.year > currentYear || m.comingSoon)
+    .slice(0, 8);
+
   return (
     <div className="min-h-screen bg-pupa-bg pb-24">
       {/* Hero */}
       <HeroBanner onMovieSelect={onMovieSelect} />
 
-      {/* Continue Watching */}
-      <section className="mb-8 mt-4">
-        <div className="flex items-center justify-between px-4 mb-3">
-          <h2 className="font-body font-semibold text-white text-base">Continue Watching</h2>
-          <button className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors">See all</button>
-        </div>
-        <div className="scroll-row px-4">
-          {CONTINUE_WATCHING.map(m => (
-            <ContinueWatchingCard key={m.id} movie={m} onClick={onMovieSelect} />
-          ))}
-        </div>
-      </section>
+      {/* Continue Watching — real data from Firestore */}
+      {user && continueWatching.length > 0 && (
+        <section className="mb-8 mt-4">
+          <div className="flex items-center justify-between px-4 mb-3">
+            <h2 className="font-body font-semibold text-white text-base">Continue Watching</h2>
+            <button className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors">See all</button>
+          </div>
+          <div className="scroll-row px-4">
+            {continueWatching.map(m => (
+              <ContinueWatchingCard key={m.id} movie={m} onClick={onMovieSelect} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Not signed in prompt */}
+      {!user && !loadingContinue && (
+        <section className="mb-8 mt-4 mx-4">
+          <div className="rounded-xl p-4 bg-white/5 border border-white/10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-white text-sm font-medium">Sign in to continue watching</p>
+              <p className="text-gray-400 text-xs">Your watch progress will be saved across devices</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <ContentRow title="Trending Now" movies={TRENDING} onMovieSelect={onMovieSelect} />
+
+      {/* Recently Added section */}
+      <ContentRow title="Recently Added" movies={recentlyAdded} onMovieSelect={onMovieSelect} badge="new" />
+
       <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} onMovieSelect={onMovieSelect} badge="gold" size="lg" />
       <ContentRow title="New Releases" movies={NEW_RELEASES} onMovieSelect={onMovieSelect} badge="new" />
       <CategoriesGrid />
       <ContentRow title="African Hits" movies={AFRICAN_HITS} onMovieSelect={onMovieSelect} />
+
+      {/* Coming Soon section */}
+      {comingSoon.length > 0 && (
+        <ContentRow title="Coming Soon" movies={comingSoon} onMovieSelect={onMovieSelect} badge="soon" />
+      )}
+
       <Top10Row onMovieSelect={onMovieSelect} />
 
       {/* Premium Early Access banner */}
