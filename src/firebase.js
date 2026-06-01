@@ -3,13 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCvjkGhII9-tSLUjH75BYt1zfAHUL2ta40",
-  authDomain: "pupa-originals-31f58.firebaseapp.com",
-  projectId: "pupa-originals-31f58",
-  storageBucket: "pupa-originals-31f58.firebasestorage.app",
-  messagingSenderId: "1012929638279",
-  appId: "1:1012929638279:web:dbeafd135dda3b660fed22",
-  measurementId: "G-KTZV5BSP3G"
+  apiKey: "AIzaSyB2JLL58U7ZEKEx4GiDdCWTFNrLg3F-Of8",
+  authDomain: "pupa-originals-new.firebaseapp.com",
+  projectId: "pupa-originals-new",
+  storageBucket: "pupa-originals-new.firebasestorage.app",
+  messagingSenderId: "981860483022",
+  appId: "1:981860483022:web:eb4dfc8f5378e61890b59f"
 };
 
 const app = initializeApp(firebaseConfig);
