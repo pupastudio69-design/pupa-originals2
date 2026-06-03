@@ -25,6 +25,15 @@ export default function HeroBanner({ onMovieSelect }) {
 
   const movie = HERO_MOVIES[current];
 
+  // Helper: handle genre as string or array
+  const getGenres = (genre) => {
+    if (Array.isArray(genre)) return genre;
+    if (typeof genre === 'string') return [genre];
+    return [];
+  };
+
+  const genres = getGenres(movie.genre);
+
   return (
     <div className="relative w-full" style={{ height: '85vh', minHeight: 520 }}>
       {/* Backdrop images */}
@@ -81,7 +90,7 @@ export default function HeroBanner({ onMovieSelect }) {
         </p>
 
         {/* Meta */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-1">
             <Star size={12} className="text-yellow-400 fill-yellow-400" />
             <span className="text-yellow-400 text-xs font-mono font-medium">{movie.rating}</span>
@@ -90,7 +99,7 @@ export default function HeroBanner({ onMovieSelect }) {
           <span className="text-gray-400 text-xs">{movie.year}</span>
           <span className="text-gray-500 text-xs">•</span>
           <span className="text-gray-400 text-xs">{movie.duration}</span>
-          {movie.genre.slice(0, 2).map(g => (
+          {genres.slice(0, 2).map(g => (
             <span
               key={g}
               className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-emerald-800 text-emerald-400"
