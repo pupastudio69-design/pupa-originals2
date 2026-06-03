@@ -5,7 +5,7 @@ import { auth, db } from '../firebase';
 import {
   ArrowLeft, Play, Download, Gift, Star, Clock, Calendar,
   Heart, MessageCircle, Share2, ThumbsUp, Bookmark, Users,
-  Coins, Diamond, Crown, Sparkles, Flame, X, Maximize
+  Coins, Diamond, Crown, Sparkles, Flame, X, CheckCircle
 } from 'lucide-react';
 
 // Gift coins with prices by geography
@@ -30,11 +30,9 @@ function VideoPlayer({ videoUrl, title, onClose }) {
 
   const videoId = getYouTubeId(videoUrl);
 
-  // Request full screen on mount
   useEffect(() => {
     const el = document.documentElement;
     if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-    // Lock to landscape on mobile
     if (screen.orientation && screen.orientation.lock) {
       screen.orientation.lock('landscape').catch(() => {});
     }
@@ -49,7 +47,7 @@ function VideoPlayer({ videoUrl, title, onClose }) {
   if (!videoId) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-4">
           <p className="text-white text-lg mb-2">Video not available</p>
           <p className="text-gray-400 text-sm mb-4">This movie will be available soon</p>
           <button onClick={onClose} className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm">Go Back</button>
@@ -60,15 +58,12 @@ function VideoPlayer({ videoUrl, title, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-black/80">
         <p className="text-white text-sm truncate flex-1 mr-4">{title}</p>
         <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20">
           <X size={18} className="text-white" />
         </button>
       </div>
-
-      {/* Video */}
       <div className="flex-1 flex items-center justify-center">
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
@@ -91,6 +86,17 @@ export default function MovieDetailPage({ movie, onBack }) {
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [comments, setComments] = useState([]);
   const [showVideo, setShowVideo] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  // Helper: handle genre as string or array
+  const getGenres = (genre) => {
+    if (Array.isArray(genre)) return genre;
+    if (typeof genre === 'string') return [genre];
+    return [];
+  };
+
+  const genres = getGenres(movie?.genre);
 
   // Load real comments from Firestore
   useEffect(() => {
@@ -101,7 +107,6 @@ export default function MovieDetailPage({ movie, onBack }) {
         if (docSnap.exists()) {
           setComments(docSnap.data().comments || []);
         } else {
-          // Create movie document if it doesn't exist
           setDoc(doc(db, 'movies', movie.id.toString()), {
             title: movie.title,
             comments: [],
@@ -155,6 +160,45 @@ export default function MovieDetailPage({ movie, onBack }) {
     }
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: movie.title,
+      text: `Watch ${movie.title} on Pupa Originals!`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }
+    } catch (err) {
+      console.log('Share cancelled');
+    }
+  };
+
+  const handleDownload = () => {
+    if (!movie.videoUrl) {
+      alert('Download not available for this movie yet');
+      return;
+    }
+
+    // Create a download link
+    const link = document.createElement('a');
+    link.href = movie.videoUrl;
+    link.download = `${movie.title}.mp4`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 3000);
+  };
+
   const getGiftPrice = (gift) => {
     const currency = CURRENCY_SYMBOLS[USER_REGION];
     const price = gift.prices[USER_REGION];
@@ -170,6 +214,8 @@ export default function MovieDetailPage({ movie, onBack }) {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   };
+
+  if (!movie) return null;
 
   return (
     <div className="min-h-screen bg-pupa-bg page-enter pb-20">
@@ -191,8 +237,8 @@ export default function MovieDetailPage({ movie, onBack }) {
         <button onClick={onBack} className="absolute top-14 left-4 w-10 h-10 rounded-full glass-dark flex items-center justify-center">
           <ArrowLeft size={18} className="text-white" />
         </button>
-        <button className="absolute top-14 right-4 w-10 h-10 rounded-full glass-dark flex items-center justify-center">
-          <Share2 size={17} className="text-white" />
+        <button onClick={handleShare} className="absolute top-14 right-4 w-10 h-10 rounded-full glass-dark flex items-center justify-center">
+          {shareCopied ? <CheckCircle size={17} className="text-emerald-400" /> : <Share2 size={17} className="text-white" />}
         </button>
       </div>
 
@@ -222,7 +268,7 @@ export default function MovieDetailPage({ movie, onBack }) {
           </div>
           {movie.year && <div className="flex items-center gap-1.5 text-gray-400 text-xs"><Calendar size={11} /> {movie.year}</div>}
           {movie.duration && <div className="flex items-center gap-1.5 text-gray-400 text-xs"><Clock size={11} /> {movie.duration}</div>}
-          {(movie.genre || []).map((g, i) => (
+          {genres.map((g, i) => (
             <span key={i} className="px-2 py-0.5 rounded-full text-[10px] border border-emerald-800 text-emerald-400">{g}</span>
           ))}
         </div>
@@ -241,8 +287,8 @@ export default function MovieDetailPage({ movie, onBack }) {
           <button onClick={() => setLiked(!liked)} className="w-12 h-12 rounded-xl glass-dark flex items-center justify-center border border-emerald-800/40">
             <Heart size={18} className={liked ? 'text-red-400 fill-red-400' : 'text-gray-400'} />
           </button>
-          <button className="w-12 h-12 rounded-xl glass-dark flex items-center justify-center border border-emerald-800/40">
-            <Download size={18} className="text-emerald-400" />
+          <button onClick={handleDownload} className="w-12 h-12 rounded-xl glass-dark flex items-center justify-center border border-emerald-800/40">
+            <Download size={18} className={downloaded ? 'text-emerald-400' : 'text-gray-400'} />
           </button>
         </div>
 
