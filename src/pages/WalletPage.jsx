@@ -299,27 +299,8 @@ export default function WalletPage() {
     });
   };
 
-  const handleReferralSignup = async () => {
-    if (!currentUser) return;
-    const newCount = referrals + 1;
-    setReferrals(newCount);
-    await updateUserField('referrals', newCount);
-    if (newCount <= 10) {
-      const newPoints = points + 10;
-      setPoints(newPoints);
-      await updateUserField('points', newPoints);
-      await addTransaction(
-        currentUser.uid,
-        'reward',
-        'Friend Joined via Referral',
-        '+10 pts',
-        '🎁'
-      );
-      if (newCount === 10) {
-        alert('🎉 Congratulations! You invited 10 friends! Bonus unlocked!');
-      }
-    }
-  };
+  // REMOVED: handleReferralSignup - this was the fake button function
+  // Now referrals only work when someone ACTUALLY signs up with your link
 
   const handleUnlockFeature = async (featureName, cost) => {
     if (!currentUser) {
@@ -507,7 +488,7 @@ export default function WalletPage() {
           )}
         </div>
 
-        {/* Referral section */}
+        {/* Referral section - SIMULATE BUTTON REMOVED */}
         <div
           className="rounded-2xl p-4 mb-6"
           style={{
@@ -543,18 +524,13 @@ export default function WalletPage() {
 
           <button
             onClick={handleShareReferral}
-            className="w-full py-2.5 rounded-xl bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-sm font-medium hover:bg-yellow-500/25 transition-colors flex items-center justify-center gap-2 mb-2"
+            className="w-full py-2.5 rounded-xl bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-sm font-medium hover:bg-yellow-500/25 transition-colors flex items-center justify-center gap-2"
           >
             {copied ? <Check size={16} /> : <Share2 size={16} />}
             {copied ? 'Link Copied!' : 'Copy Referral Link'}
           </button>
 
-          <button
-            onClick={handleReferralSignup}
-            className="w-full py-2 rounded-lg bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors"
-          >
-            + Simulate Friend Joining (Demo)
-          </button>
+          {/* REMOVED: Simulate button was here - now referrals only work for REAL signups */}
         </div>
 
         {/* Subscription plans */}
