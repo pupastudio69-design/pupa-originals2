@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, ALL_MOVIES } from '../data/movies.js';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, Gift, Download, 
-  Plus, Check, Star, Clock, Calendar, Users, Copy, X
+  Plus, Check, Star, Clock, Calendar, Users, Copy, X, Play
 } from 'lucide-react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -140,7 +140,7 @@ export default function MovieDetailPage() {
         const walletSnap = await getDoc(walletRef);
         const subscription = walletSnap.data()?.subscription;
         if (!subscription || subscription.status !== 'active') {
-          alert('Premium subscription (₦6,000/month) required to download Pupa Originals');
+          alert('Premium subscription (₦4,000/month) required to download Pupa Originals');
           return;
         }
       } catch (error) {
@@ -233,12 +233,12 @@ export default function MovieDetailPage() {
 
   if (!movie) {
     return (
-      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 mb-4">Movie not found</p>
           <button 
             onClick={() => navigate('/')}
-            className="px-4 py-2 bg-purple-600 rounded-lg text-white"
+            className="px-4 py-2 bg-emerald-600 rounded-lg text-white font-bold hover:bg-emerald-500 transition-colors"
           >
             Go Home
           </button>
@@ -250,7 +250,8 @@ export default function MovieDetailPage() {
   const relatedMovies = getRelatedMovies();
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] pb-20">
+    <div className="min-h-screen bg-[#050505] pb-20">
+      {/* Video Player */}
       <div className="relative w-full aspect-video bg-black">
         <iframe
           src={movie.videoUrl}
@@ -259,30 +260,33 @@ export default function MovieDetailPage() {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           title={movie.title}
         />
+
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors border border-white/10"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
 
+      {/* Movie Info */}
       <div className="px-4 py-6">
+        {/* Title & Actions */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white mb-2">{movie.title}</h1>
+            <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">{movie.title}</h1>
             <div className="flex items-center gap-3 text-sm text-gray-400">
               <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-emerald-400" />
                 {movie.year}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 text-emerald-400" />
                 {movie.duration}
               </span>
-              <span className="px-2 py-0.5 bg-gray-800 rounded text-xs">{movie.rating}</span>
+              <span className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-300 border border-gray-700">{movie.rating}</span>
               {movie.isPupaOriginal && (
-                <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 rounded text-xs font-medium">
+                <span className="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded text-xs font-bold border border-emerald-500/30">
                   PUPA ORIGINAL
                 </span>
               )}
@@ -292,16 +296,16 @@ export default function MovieDetailPage() {
           <div className="flex items-center gap-2 ml-4">
             <button
               onClick={toggleLike}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isLiked ? 'bg-red-500/20 text-red-500' : 'bg-gray-800 text-gray-400 hover:text-white'
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors border ${
+                isLiked ? 'bg-red-500/20 text-red-500 border-red-500/30' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'
               }`}
             >
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
             </button>
             <button
               onClick={toggleWatchlist}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isInWatchlist ? 'bg-green-500/20 text-green-500' : 'bg-gray-800 text-gray-400 hover:text-white'
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors border ${
+                isInWatchlist ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'
               }`}
             >
               {isInWatchlist ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -309,94 +313,102 @@ export default function MovieDetailPage() {
           </div>
         </div>
 
+        {/* Rating */}
         <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center gap-1">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            <span className="text-white font-semibold">4.5</span>
+            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+            <span className="text-white font-bold">4.5</span>
           </div>
           <span className="text-gray-500 text-sm">({movie.likes?.toLocaleString()} likes)</span>
+          <span className="text-gray-600 text-sm">•</span>
           <span className="text-gray-500 text-sm">{movie.views} views</span>
         </div>
 
+        {/* Genre Tags */}
         <div className="flex flex-wrap gap-2 mb-4">
           {movie.genre.map((g, i) => (
-            <span key={i} className="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">
+            <span key={i} className="px-3 py-1 bg-gray-800 rounded-full text-xs text-emerald-300 font-medium border border-gray-700">
               {g}
             </span>
           ))}
         </div>
 
+        {/* Description */}
         <p className="text-gray-300 text-sm leading-relaxed mb-6">
           {movie.description}
         </p>
 
+        {/* Cast & Crew */}
         <div className="mb-6">
-          <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-            <Users className="w-4 h-4" />
+          <h3 className="text-white font-bold mb-2 flex items-center gap-2 text-sm tracking-wide">
+            <Users className="w-4 h-4 text-emerald-400" />
             Cast & Crew
           </h3>
           <div className="space-y-1 text-sm">
             <p className="text-gray-400">
-              <span className="text-gray-500">Director:</span>{' '}
+              <span className="text-gray-600">Director:</span>{' '}
               <span className="text-gray-300">{movie.director}</span>
             </p>
             <p className="text-gray-400">
-              <span className="text-gray-500">Cast:</span>{' '}
+              <span className="text-gray-600">Cast:</span>{' '}
               <span className="text-gray-300">{movie.cast.join(', ')}</span>
             </p>
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="grid grid-cols-4 gap-3 mb-6">
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
           >
             {downloading ? (
-              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Download className="w-6 h-6 text-purple-400" />
+              <Download className="w-6 h-6 text-emerald-400" />
             )}
-            <span className="text-xs text-gray-400">
+            <span className="text-[10px] text-gray-400 font-medium">
               {downloading ? `${downloadProgress}%` : 'Download'}
             </span>
           </button>
 
           <button
             onClick={() => setShowGiftModal(true)}
-            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
           >
-            <Gift className="w-6 h-6 text-pink-400" />
-            <span className="text-xs text-gray-400">Gift</span>
+            <Gift className="w-6 h-6 text-yellow-400" />
+            <span className="text-[10px] text-gray-400 font-medium">Gift</span>
           </button>
 
           <button
             onClick={handleShare}
-            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
           >
             <Share2 className="w-6 h-6 text-blue-400" />
-            <span className="text-xs text-gray-400">Share</span>
+            <span className="text-[10px] text-gray-400 font-medium">Share</span>
           </button>
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
           >
-            <MessageCircle className="w-6 h-6 text-green-400" />
-            <span className="text-xs text-gray-400">Comments</span>
+            <MessageCircle className="w-6 h-6 text-emerald-400" />
+            <span className="text-[10px] text-gray-400 font-medium">Comments</span>
           </button>
         </div>
 
-        <div className="mb-6 p-3 bg-gray-800/50 rounded-lg">
+        {/* Source Attribution */}
+        <div className="mb-6 p-3 bg-gray-800/50 rounded-lg border border-gray-800">
           <p className="text-xs text-gray-500">
-            Source: <span className="text-gray-400">{movie.source}</span>
+            Source: <span className="text-emerald-400 font-medium">{movie.source}</span>
           </p>
         </div>
 
+        {/* Comments Section */}
         {showComments && (
           <div className="mb-6">
-            <h3 className="text-white font-semibold mb-4">Comments ({comments.length})</h3>
+            <h3 className="text-white font-bold mb-4 text-sm tracking-wide">Comments ({comments.length})</h3>
 
             {user ? (
               <form onSubmit={submitComment} className="mb-4">
@@ -406,12 +418,12 @@ export default function MovieDetailPage() {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment..."
-                    className="flex-1 px-4 py-2 bg-gray-800 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-4 py-2 bg-gray-800 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 border border-gray-700"
                   />
                   <button
                     type="submit"
                     disabled={!newComment.trim()}
-                    className="px-4 py-2 bg-purple-600 rounded-lg text-white text-sm font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-emerald-600 rounded-lg text-white text-sm font-bold disabled:opacity-50 hover:bg-emerald-500 transition-colors"
                   >
                     Post
                   </button>
@@ -426,9 +438,9 @@ export default function MovieDetailPage() {
                 <p className="text-gray-500 text-sm text-center py-4">No comments yet. Be the first!</p>
               ) : (
                 comments.map(comment => (
-                  <div key={comment.id} className="p-3 bg-gray-800/50 rounded-lg">
+                  <div key={comment.id} className="p-3 bg-gray-800/50 rounded-lg border border-gray-800">
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-xs text-white font-medium">
+                      <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-xs text-white font-bold">
                         {(comment.userName || 'U')[0].toUpperCase()}
                       </div>
                       <span className="text-sm text-gray-300 font-medium">{comment.userName || 'User'}</span>
@@ -444,27 +456,28 @@ export default function MovieDetailPage() {
           </div>
         )}
 
+        {/* Related Movies */}
         {relatedMovies.length > 0 && (
           <div>
-            <h3 className="text-white font-semibold mb-4">Related Movies</h3>
+            <h3 className="text-white font-bold mb-4 text-sm tracking-wide">Recommended For You</h3>
             <div className="grid grid-cols-2 gap-3">
               {relatedMovies.map(related => (
                 <button
                   key={related.id}
                   onClick={() => navigate(`/movie/${related.id}`)}
-                  className="text-left"
+                  className="text-left group"
                 >
-                  <div className="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-gray-800">
+                  <div className="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-gray-900 border border-gray-800 group-hover:border-emerald-500/50 transition-colors">
                     <img
                       src={related.poster}
                       alt={related.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x450/1a1a2e/ffffff?text=No+Poster';
+                        e.target.src = 'https://via.placeholder.com/300x450/0a0a0a/10b981?text=No+Poster';
                       }}
                     />
                   </div>
-                  <p className="text-white text-sm font-medium truncate">{related.title}</p>
+                  <p className="text-white text-sm font-semibold truncate group-hover:text-emerald-400 transition-colors">{related.title}</p>
                   <p className="text-gray-500 text-xs">{related.year}</p>
                 </button>
               ))}
@@ -473,14 +486,15 @@ export default function MovieDetailPage() {
         )}
       </div>
 
+      {/* Gift Modal */}
       {showGiftModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm border border-white/10">
+          <div className="bg-[#0a0a0a] rounded-2xl p-6 w-full max-w-sm border border-gray-800 shadow-2xl shadow-emerald-500/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold text-lg">Buy Coins</h3>
+              <h3 className="text-white font-bold text-lg tracking-wide">Buy Coins</h3>
               <button
                 onClick={() => setShowGiftModal(false)}
-                className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white border border-gray-700"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -495,19 +509,19 @@ export default function MovieDetailPage() {
                 <button
                   key={pkg.coins}
                   onClick={() => handleGift(pkg.coins)}
-                  className="p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors text-center"
+                  className="p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors text-center border border-gray-700 hover:border-yellow-500/50"
                 >
                   <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                    <span className="text-yellow-500 text-lg">⚡</span>
+                    <span className="text-yellow-400 text-lg">⚡</span>
                   </div>
-                  <p className="text-white font-semibold text-sm">{pkg.label}</p>
-                  <p className="text-purple-400 text-sm">₦{pkg.price.toLocaleString()}</p>
+                  <p className="text-white font-bold text-sm">{pkg.label}</p>
+                  <p className="text-emerald-400 text-sm font-medium">₦{pkg.price.toLocaleString()}</p>
                 </button>
               ))}
             </div>
 
             <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-              <p className="text-yellow-400 text-sm font-medium">Paystack Coming Soon</p>
+              <p className="text-yellow-400 text-sm font-bold">Paystack Coming Soon</p>
               <p className="text-gray-500 text-xs mt-1">
                 Coin purchases will be available once Paystack is integrated.
               </p>
@@ -516,20 +530,21 @@ export default function MovieDetailPage() {
         </div>
       )}
 
+      {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm border border-white/10">
+          <div className="bg-[#0a0a0a] rounded-2xl p-6 w-full max-w-sm border border-gray-800 shadow-2xl shadow-emerald-500/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-semibold text-lg">Share Movie</h3>
+              <h3 className="text-white font-bold text-lg tracking-wide">Share Movie</h3>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white border border-gray-700"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 bg-gray-800 rounded-lg mb-4">
+            <div className="p-3 bg-gray-800 rounded-lg mb-4 border border-gray-700">
               <p className="text-gray-400 text-xs break-all">
                 https://pupaoriginals.com/movie/{movie.id}
               </p>
@@ -537,7 +552,7 @@ export default function MovieDetailPage() {
 
             <button
               onClick={copyLink}
-              className="w-full py-3 bg-purple-600 rounded-xl text-white font-medium flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors"
+              className="w-full py-3 bg-emerald-600 rounded-xl text-white font-bold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors"
             >
               {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               {copied ? 'Copied!' : 'Copy Link'}
