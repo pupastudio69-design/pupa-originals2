@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { auth, app } from './firebase';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SplashScreen from './components/SplashScreen';
 import TopNavbar from './components/TopNavbar';
 import BottomNavbar from './components/BottomNavbar';
@@ -31,6 +31,7 @@ function MainApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const { user } = useAuth();
 
   // Request push notification permission
   useEffect(() => {
@@ -42,16 +43,13 @@ function MainApp() {
           })
             .then((token) => {
               console.log('Push notification token:', token);
-              // Save token to Firestore for this user
             })
             .catch((err) => console.log('Token error:', err));
         }
       });
 
-      // Handle foreground messages
       onMessage(messaging, (payload) => {
         console.log('Message received:', payload);
-        // Show custom notification or update UI
         if (Notification.permission === 'granted') {
           new Notification(payload.notification.title, {
             body: payload.notification.body,
@@ -86,7 +84,6 @@ function MainApp() {
     setShowTerms(false);
   };
 
-  // Show Terms page
   if (showTerms) {
     return (
       <div className="relative min-h-screen bg-pupa-bg">
@@ -99,7 +96,6 @@ function MainApp() {
 
   return (
     <div className="relative min-h-screen bg-pupa-bg noise">
-      {/* Overlays */}
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -114,7 +110,6 @@ function MainApp() {
         />
       )}
 
-      {/* Movie Detail View */}
       {selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
@@ -126,7 +121,6 @@ function MainApp() {
         </>
       )}
 
-      {/* Main Tab Views */}
       {!selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
@@ -149,18 +143,9 @@ function MainApp() {
 }
 
 function AuthWrapper({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!loading && !user && location.pathname !== '/login' && location.pathname !== '/signup') {
@@ -188,18 +173,20 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route
-          path="/*"
-          element={
-            <AuthWrapper>
-              <MainApp />
-            </AuthWrapper>
-          }
-        />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route
+            path="/*"
+            element={
+              <AuthWrapper>
+                <MainApp />
+              </AuthWrapper>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

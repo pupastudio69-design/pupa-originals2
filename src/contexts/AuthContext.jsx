@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
 
 export function AuthProvider({ children }) {
@@ -14,22 +18,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Get additional user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const userData = userDoc.data() || {};
-
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName || userData.displayName || '',
-          photoURL: firebaseUser.photoURL || userData.photoURL || '',
-          ...userData
-        });
-      } else {
-        setUser(null);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
@@ -38,11 +28,8 @@ export function AuthProvider({ children }) {
 
   const signup = async (email, password, displayName) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-
-    // Update profile
     await updateProfile(result.user, { displayName });
 
-    // Create user document in Firestore
     await setDoc(doc(db, 'users', result.user.uid), {
       email,
       displayName,
@@ -50,7 +37,6 @@ export function AuthProvider({ children }) {
       role: 'user'
     });
 
-    // Create wallet document
     await setDoc(doc(db, 'wallets', result.user.uid), {
       balance: 0,
       points: 0,
@@ -81,7 +67,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
