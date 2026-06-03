@@ -15,14 +15,17 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 
-// Main app with tabs
 function MainApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
 
+  // Debug log
+  console.log('Render state:', { activeTab, selectedMovie: selectedMovie?.title, searchOpen, categoriesOpen });
+
   const handleMovieSelect = (movie) => {
+    console.log('Movie selected:', movie.title);
     setSelectedMovie(movie);
   };
 
@@ -30,13 +33,17 @@ function MainApp() {
     setSelectedMovie(null);
   };
 
+  const handleCategoriesOpen = () => {
+    console.log('Opening categories overlay');
+    setCategoriesOpen(true);
+  };
+
   const handleCategorySelect = (category) => {
-    console.log('Selected category:', category);
+    console.log('Category selected:', category.name);
   };
 
   return (
     <div className="relative min-h-screen bg-pupa-bg noise">
-      {/* Overlays */}
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -51,7 +58,6 @@ function MainApp() {
         />
       )}
 
-      {/* Movie Detail View */}
       {selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
@@ -63,7 +69,6 @@ function MainApp() {
         </>
       )}
 
-      {/* Main Tab Views */}
       {!selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
@@ -71,7 +76,7 @@ function MainApp() {
             {activeTab === 'home' && (
               <HomePage 
                 onMovieSelect={handleMovieSelect} 
-                onCategoriesOpen={() => setCategoriesOpen(true)}
+                onCategoriesOpen={handleCategoriesOpen}
               />
             )}
             {activeTab === 'wallet' && <WalletPage />}
@@ -85,7 +90,6 @@ function MainApp() {
   );
 }
 
-// Auth wrapper to protect routes
 function AuthWrapper({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
