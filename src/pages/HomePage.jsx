@@ -7,7 +7,7 @@ import CategoriesGrid from '../components/CategoriesGrid';
 import Top10Row from '../components/Top10Row';
 import {
   TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS
-} from '../data/movies';
+} from '../data/movies.js';
 
 const auth = getAuth();
 const db = getFirestore();

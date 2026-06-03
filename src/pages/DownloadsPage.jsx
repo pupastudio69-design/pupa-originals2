@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, arrayRemove, arrayUnion, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { Download, Play, Trash2, Wifi, Lock, LogIn, Film } from 'lucide-react';
+import { Download, Play, Trash2, Wifi, Lock, LogIn, Film, ArrowLeft, HardDrive, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MAX_STORAGE_GB = 10;
 
 export default function DownloadsPage() {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloads, setDownloads] = useState([]);
@@ -73,7 +75,7 @@ export default function DownloadsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pupa-bg flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -81,14 +83,16 @@ export default function DownloadsPage() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-pupa-bg flex items-center justify-center px-5">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center px-5">
         <div className="text-center">
-          <LogIn size={48} className="text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-semibold mb-2">Sign In Required</h2>
-          <p className="text-gray-400 text-sm mb-4">Please sign in to access your downloads</p>
+          <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+            <LogIn size={32} className="text-emerald-500" />
+          </div>
+          <h2 className="text-white text-xl font-bold mb-2">Sign In Required</h2>
+          <p className="text-gray-400 text-sm mb-6">Please sign in to access your downloads</p>
           <button 
-            onClick={() => window.location.href = '/login'}
-            className="px-6 py-3 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors"
+            onClick={() => navigate('/login')}
+            className="px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition-colors"
           >
             Sign In
           </button>
@@ -98,23 +102,34 @@ export default function DownloadsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pupa-bg pt-16 pb-24 page-enter">
-      <div className="px-5 pt-4">
-        <h1 className="font-display text-2xl font-semibold text-white mb-2">Downloads</h1>
-        <p className="text-gray-500 text-xs font-body mb-6">
-          <Lock size={10} className="inline mr-1" />
-          Saved inside Pupa Originals only
-        </p>
+    <div className="min-h-screen bg-[#050505] pb-24">
+      {/* Header */}
+      <div className="bg-gradient-to-b from-purple-900/30 to-[#050505] pt-12 pb-6 px-4">
+        <div className="flex items-center gap-3 mb-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Downloads</h1>
+            <p className="text-gray-400 text-xs">Manage your offline content</p>
+          </div>
+        </div>
 
-        {/* Storage indicator */}
-        <div className="glass-dark rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400 text-xs font-body">Storage Used</span>
+        {/* Storage Card */}
+        <div className="bg-[#1a1a2e] rounded-2xl p-5 border border-white/5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <HardDrive className="w-5 h-5 text-emerald-400" />
+              <span className="text-white font-bold text-sm">Storage</span>
+            </div>
             <span className="text-emerald-400 text-xs font-mono">
               {formatStorage(storageUsed)} / {MAX_STORAGE_GB} GB
             </span>
           </div>
-          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -126,30 +141,38 @@ export default function DownloadsPage() {
             />
           </div>
           {storagePercent > 90 && (
-            <p className="text-red-400 text-[10px] mt-1">Storage almost full!</p>
+            <p className="text-red-400 text-[10px]">Storage almost full! Delete some downloads.</p>
           )}
         </div>
+      </div>
 
+      <div className="px-4 space-y-4 mt-4">
         {/* Download list */}
         {downloads.length === 0 ? (
-          <div className="text-center py-12">
-            <Film size={48} className="text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-sm mb-2">No downloads yet</p>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <Film size={40} className="text-gray-600" />
+            </div>
+            <p className="text-gray-400 text-sm mb-1 font-bold">No downloads yet</p>
             <p className="text-gray-600 text-xs">Movies you download will appear here</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {downloads.map(d => (
               <div
                 key={d.id}
-                className="flex gap-3 p-3 rounded-xl glass-dark"
+                className="flex gap-3 p-3 rounded-xl bg-[#1a1a2e] border border-white/5 hover:border-emerald-500/20 transition-colors"
               >
                 {/* Thumbnail */}
-                <div className="relative flex-shrink-0 rounded-lg overflow-hidden" style={{ width: 72, height: 104 }}>
+                <div 
+                  className="relative flex-shrink-0 rounded-lg overflow-hidden cursor-pointer"
+                  style={{ width: 80, height: 110 }}
+                  onClick={() => navigate(`/movie/${d.movieId}`)}
+                >
                   <img src={d.poster} alt={d.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     {d.progress === 100 ? (
-                      <Play size={16} className="text-white fill-white" />
+                      <Play size={18} className="text-white fill-white" />
                     ) : (
                       <div className="text-center">
                         <Download size={14} className="text-yellow-400 mx-auto mb-1" />
@@ -173,17 +196,23 @@ export default function DownloadsPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-semibold font-body mb-1 truncate">{d.title}</p>
+                  <p 
+                    className="text-white text-sm font-bold font-body mb-1 truncate cursor-pointer hover:text-emerald-400 transition-colors"
+                    onClick={() => navigate(`/movie/${d.movieId}`)}
+                  >
+                    {d.title}
+                  </p>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-emerald-400 text-[10px] font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                      {d.quality}
+                      {d.quality || 'HD'}
                     </span>
-                    <span className="text-gray-500 text-[10px]">{d.size}</span>
+                    <span className="text-gray-500 text-[10px]">{d.size || '1.2 GB'}</span>
                   </div>
                   {d.progress === 100 ? (
-                    <p className="text-gray-500 text-[10px] font-body">
-                      Expires in {d.expires}
-                    </p>
+                    <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+                      <Clock size={10} />
+                      <span>Expires in {d.expires || '7 days'}</span>
+                    </div>
                   ) : (
                     <p className="text-yellow-500 text-[10px] font-body">
                       Downloading... {d.progress}%
@@ -194,7 +223,7 @@ export default function DownloadsPage() {
                 {/* Delete */}
                 <button 
                   onClick={() => handleDeleteDownload(d)}
-                  className="flex-shrink-0 w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                  className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors self-center"
                 >
                   <Trash2 size={15} className="text-red-400" />
                 </button>
@@ -204,11 +233,13 @@ export default function DownloadsPage() {
         )}
 
         {/* Wifi only toggle */}
-        <div className="mt-6 glass-dark rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#1a1a2e] rounded-xl p-4 flex items-center justify-between border border-white/5">
           <div className="flex items-center gap-3">
-            <Wifi size={18} className="text-emerald-400" />
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <Wifi size={18} className="text-emerald-400" />
+            </div>
             <div>
-              <p className="text-white text-sm font-body">Download on Wi-Fi only</p>
+              <p className="text-white text-sm font-bold">Download on Wi-Fi only</p>
               <p className="text-gray-500 text-xs">Save mobile data</p>
             </div>
           </div>
@@ -222,6 +253,22 @@ export default function DownloadsPage() {
               wifiOnly ? 'right-0.5' : 'left-0.5'
             }`} />
           </button>
+        </div>
+
+        {/* Info Card */}
+        <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Lock size={14} className="text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-white text-sm font-bold mb-1">Offline Viewing</p>
+              <p className="text-gray-500 text-xs leading-relaxed">
+                Downloaded movies are encrypted and can only be played within the Pupa Originals app. 
+                Downloads expire after 30 days and will need to be renewed.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
