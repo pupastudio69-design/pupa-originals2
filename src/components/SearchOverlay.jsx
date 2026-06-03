@@ -1,13 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, TrendingUp, Clock, Trash2 } from 'lucide-react';
-import {
-  TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS
-} from '../data/movies';
+import { ALL_MOVIES } from '../data/movies.js';
 
 const TRENDING_SEARCHES = ['Nollywood 2025', 'Queen of Benin', 'Afrobeats Rising', 'Lagos Thriller', 'African Epic', 'Action', 'Drama', 'Comedy'];
-
-// All movies combined for searching
-const ALL_MOVIES = [...TRENDING, ...PUPA_ORIGINALS, ...NEW_RELEASES, ...AFRICAN_HITS];
 
 export default function SearchOverlay({ onClose, onMovieSelect }) {
   const [query, setQuery] = useState('');
@@ -16,7 +11,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
 
   useEffect(() => {
     inputRef.current?.focus();
-    // Load recent searches from localStorage
     const saved = localStorage.getItem('pupa_recent_searches');
     if (saved) {
       try {
@@ -27,7 +21,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
     }
   }, []);
 
-  // Save recent searches to localStorage
   const saveRecentSearch = (searchTerm) => {
     if (!searchTerm.trim()) return;
     const updated = [searchTerm, ...recentSearches.filter(s => s !== searchTerm)].slice(0, 8);
@@ -46,13 +39,12 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
     localStorage.setItem('pupa_recent_searches', JSON.stringify(updated));
   };
 
-  // Search across ALL movies + filter by multiple fields
   const results = query.length > 1
     ? ALL_MOVIES.filter(m => {
         const q = query.toLowerCase();
         return (
           m.title?.toLowerCase().includes(q) ||
-          m.genre?.toLowerCase().includes(q) ||
+          m.genre?.some(g => g.toLowerCase().includes(q)) ||
           m.year?.toString().includes(q) ||
           m.description?.toLowerCase().includes(q) ||
           m.cast?.some(actor => actor.toLowerCase().includes(q)) ||
@@ -61,7 +53,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
       })
     : [];
 
-  // Remove duplicates (in case a movie appears in multiple arrays)
   const uniqueResults = results.filter((m, index, self) =>
     index === self.findIndex(t => t.id === m.id)
   );
@@ -82,7 +73,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
       className="fixed inset-0 z-[100] flex flex-col"
       style={{ background: 'rgba(4,27,17,0.97)', backdropFilter: 'blur(24px)' }}
     >
-      {/* Search bar */}
       <div className="flex items-center gap-3 px-4 pt-14 pb-4 border-b border-white/5">
         <Search size={18} className="text-emerald-400 flex-shrink-0" />
         <input
@@ -111,7 +101,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {query.length === 0 ? (
           <>
-            {/* Trending searches */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={14} className="text-emerald-400" />
@@ -130,7 +119,6 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
               </div>
             </div>
 
-            {/* Recent searches */}
             {recentSearches.length > 0 && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -170,14 +158,13 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
               </div>
             )}
 
-            {/* Quick picks — top rated */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={14} className="text-yellow-400" />
                 <p className="text-gray-400 text-xs font-body uppercase tracking-wider">Top Rated</p>
               </div>
               {ALL_MOVIES
-                .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+                .sort((a, b) => (b.likes || 0) - (a.likes || 0))
                 .slice(0, 5)
                 .map(m => (
                   <button
@@ -188,7 +175,7 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
                     <img src={m.poster} alt={m.title} className="w-10 h-14 rounded-lg object-cover flex-shrink-0" />
                     <div className="text-left flex-1">
                       <p className="text-white text-sm font-body font-medium">{m.title}</p>
-                      <p className="text-gray-500 text-xs">{m.genre} • {m.year}</p>
+                      <p className="text-gray-500 text-xs">{m.genre?.join(', ')} • {m.year}</p>
                     </div>
                     <span className="text-yellow-400 text-xs font-mono">★ {m.rating}</span>
                   </button>
@@ -228,10 +215,10 @@ export default function SearchOverlay({ onClose, onMovieSelect }) {
                     <img src={m.poster} alt={m.title} className="w-12 h-16 rounded-lg object-cover flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-body font-medium truncate">{m.title}</p>
-                      <p className="text-gray-500 text-xs">{m.genre} • {m.year}</p>
+                      <p className="text-gray-500 text-xs">{m.genre?.join(', ')} • {m.year}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-yellow-400 text-[10px] font-mono">★ {m.rating}</span>
-                        {m.isPupa && (
+                        {m.isPupaOriginal && (
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-mono">ORIGINAL</span>
                         )}
                       </div>
