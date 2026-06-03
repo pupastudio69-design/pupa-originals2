@@ -4,23 +4,53 @@ import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
 import { 
   Wallet, CreditCard, ArrowUpRight, Gift, Copy, Check, 
-  X, Crown, Star, Loader2, Zap, Globe, Lock, Play, Eye
+  X, Crown, Star, Loader2, Zap, Globe, Lock, Play, Eye,
+  Clock, Download, MessageSquare, Shield, Film, Sparkles
 } from 'lucide-react';
 
 const SUBSCRIPTION_PLANS = {
   basic: { 
     name: 'Basic', 
-    price: 4000, 
+    price: 2500, 
     period: 'month', 
-    features: ['4K Streaming', 'With Ads', 'Standard Movies'],
-    hasAds: true
+    features: [
+      'Standard Streaming Quality',
+      '30-60 Movie Library',
+      'Delayed New Releases (7-14 days)',
+      'Light Ads & Sponsored Messages',
+      'View-Only Comments',
+      'No Downloads',
+      'No Exclusive Content',
+      'No Early Releases'
+    ],
+    hasAds: true,
+    hasDownloads: false,
+    maxMovies: 60,
+    releaseDelay: '7-14 days',
+    quality: 'Standard',
+    interaction: 'View Only'
   },
   premium: { 
     name: 'Premium', 
-    price: 6000, 
+    price: 4000, 
     period: 'month', 
-    features: ['4K Streaming', 'No Ads', 'Early Releases', 'BTS Content', 'Exclusive'],
+    features: [
+      '4K Ultra HD Streaming',
+      'Unlimited Movie Library',
+      'Immediate New Releases',
+      'No Ads — Ever',
+      'Full Comments & Interaction',
+      'Unlimited Downloads',
+      'Exclusive Content Access',
+      'Early Releases & Voting Power',
+      'BTS Content & Creator Gifts'
+    ],
     hasAds: false,
+    hasDownloads: true,
+    maxMovies: 'Unlimited',
+    releaseDelay: 'Immediate',
+    quality: '4K Ultra HD',
+    interaction: 'Full Access',
     popular: true
   }
 };
@@ -153,7 +183,7 @@ export default function WalletPage() {
 
   const isSubscribed = wallet?.subscription && wallet.subscription.status === 'active';
   const subscriptionDaysLeft = isSubscribed && wallet.subscription.expiresAt 
-    ? Math.ceil((wallet.subscription.expiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil((wallet.subscription.expiresAt.toDate - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
 
   const currentPlan = isSubscribed ? SUBSCRIPTION_PLANS[wallet.subscription.plan] : null;
@@ -171,7 +201,7 @@ export default function WalletPage() {
       <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center p-4">
         <div className="text-center">
           <Wallet className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-semibold mb-2">Sign In Required</h2>
+          <h2 className="text-white text-xl font-bold mb-2">Sign In Required</h2>
           <p className="text-gray-400 text-sm">Please sign in to access your wallet</p>
         </div>
       </div>
@@ -208,7 +238,7 @@ export default function WalletPage() {
                 <Check className="w-4 h-4 text-green-400" />
               </div>
               <div>
-                <p className="text-green-400 font-semibold text-sm">
+                <p className="text-green-400 font-bold text-sm">
                   {paymentSuccess.type === 'subscription' 
                     ? `${paymentSuccess.plan} subscription activated!` 
                     : 'Payment successful!'}
@@ -247,7 +277,7 @@ export default function WalletPage() {
 
             {isSubscribed && (
               <div className="flex flex-wrap gap-2 mb-4">
-                {currentPlan?.features.map(feature => (
+                {currentPlan?.features.slice(0, 4).map(feature => (
                   <span key={feature} className="text-xs text-white/80 bg-white/10 px-2 py-1 rounded">
                     {feature}
                   </span>
@@ -258,7 +288,7 @@ export default function WalletPage() {
             <div className="flex gap-3">
               <button 
                 onClick={() => setShowSubscribe(true)}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2
+                className={`flex-1 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2
                   ${isSubscribed 
                     ? 'bg-white/20 text-white hover:bg-white/30' 
                     : 'bg-white text-purple-600 hover:bg-gray-100'}`}
@@ -268,7 +298,7 @@ export default function WalletPage() {
               </button>
               <button 
                 onClick={() => setShowCoins(true)}
-                className="flex-1 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-semibold text-sm hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-bold text-sm hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />
                 Buy Coins
@@ -309,7 +339,7 @@ export default function WalletPage() {
 
         {/* Referral Link */}
         <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
-          <p className="text-white font-semibold text-sm mb-2">Refer & Earn Points</p>
+          <p className="text-white font-bold text-sm mb-2">Refer & Earn Points</p>
           <p className="text-gray-400 text-xs mb-3">
             Share your link. Earn 1 point per friend who joins. Use points to unlock BTS & Early Releases. 
             <span className="text-red-400"> Points cannot be used for gifting creators.</span>
@@ -321,7 +351,7 @@ export default function WalletPage() {
             </div>
             <button 
               onClick={copyReferralLink}
-              className="px-4 py-2 bg-purple-600 rounded-lg text-white text-xs font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-purple-600 rounded-lg text-white text-xs font-bold hover:bg-purple-700 transition-colors flex items-center gap-2"
             >
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
@@ -331,7 +361,7 @@ export default function WalletPage() {
 
         {/* How Points Work */}
         <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
-          <p className="text-white font-semibold text-sm mb-3">How Points Work</p>
+          <p className="text-white font-bold text-sm mb-3">How Points Work</p>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -365,7 +395,7 @@ export default function WalletPage() {
 
         {/* Recent Transactions */}
         <div>
-          <h3 className="text-white font-semibold mb-3">Recent Transactions</h3>
+          <h3 className="text-white font-bold mb-3">Recent Transactions</h3>
           {transactions.length === 0 ? (
             <div className="bg-[#1a1a2e] rounded-xl p-8 text-center border border-white/5">
               <Wallet className="w-8 h-8 text-gray-600 mx-auto mb-2" />
@@ -383,14 +413,14 @@ export default function WalletPage() {
                        <CreditCard className="w-5 h-5 text-blue-400" />}
                     </div>
                     <div>
-                      <p className="text-white text-sm font-medium capitalize">{tx.type}</p>
+                      <p className="text-white text-sm font-bold capitalize">{tx.type}</p>
                       <p className="text-gray-500 text-xs">
                         {tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : 'Just now'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm text-white">
+                    <p className="font-bold text-sm text-white">
                       -₦{tx.amount?.toLocaleString()}
                     </p>
                     <p className="text-gray-500 text-xs capitalize">{tx.status}</p>
@@ -414,7 +444,7 @@ export default function WalletPage() {
                 </button>
               </div>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-4 mb-6">
                 {Object.entries(SUBSCRIPTION_PLANS).map(([key, plan]) => (
                   <button
                     key={key}
@@ -425,43 +455,74 @@ export default function WalletPage() {
                         : 'border-white/10 bg-[#1a1a2e] hover:border-white/20'}`}
                   >
                     {plan.popular && (
-                      <span className="absolute -top-2 right-4 px-2 py-0.5 bg-purple-600 rounded text-[10px] text-white font-semibold">
+                      <span className="absolute -top-2 right-4 px-2 py-0.5 bg-purple-600 rounded text-[10px] text-white font-bold">
                         POPULAR
                       </span>
                     )}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-semibold">{plan.name}</span>
+
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {key === 'basic' ? <Eye className="w-5 h-5 text-gray-400" /> : <Crown className="w-5 h-5 text-yellow-400" />}
+                        <span className="text-white font-bold">{plan.name}</span>
+                      </div>
                       <span className="text-purple-400 font-bold">₦{plan.price.toLocaleString()}/mo</span>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
+
+                    {/* Plan Badges */}
+                    <div className="flex items-center gap-2 mb-3">
                       {plan.hasAds ? (
-                        <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">With Ads</span>
+                        <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded font-bold">With Ads</span>
                       ) : (
-                        <span className="text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded">No Ads</span>
+                        <span className="text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded font-bold">No Ads</span>
                       )}
+                      <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded font-bold">{plan.quality}</span>
+                      <span className="text-[10px] text-gray-400 bg-gray-500/10 px-2 py-0.5 rounded font-bold">{plan.maxMovies} Movies</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+
+                    {/* Feature List */}
+                    <div className="space-y-1.5">
                       {plan.features.map(feature => (
-                        <span key={feature} className="text-[10px] text-gray-500 bg-black/30 px-2 py-1 rounded">
-                          {feature}
-                        </span>
+                        <div key={feature} className="flex items-center gap-2">
+                          {key === 'premium' ? (
+                            <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                          ) : (
+                            <Clock className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                          )}
+                          <span className="text-[11px] text-gray-400">{feature}</span>
+                        </div>
                       ))}
                     </div>
+
+                    {/* Tier Feel Description */}
+                    {key === 'basic' && (
+                      <div className="mt-3 p-2 bg-yellow-500/5 border border-yellow-500/10 rounded-lg">
+                        <p className="text-[10px] text-yellow-500/80">
+                          Limited experience. Eventually you will want more content access. Upgrade anytime.
+                        </p>
+                      </div>
+                    )}
+                    {key === 'premium' && (
+                      <div className="mt-3 p-2 bg-purple-500/5 border border-purple-500/10 rounded-lg">
+                        <p className="text-[10px] text-purple-400/80">
+                          Full 4K experience. Everything unlimited. No restrictions. Best value.
+                        </p>
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
 
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-4">
-                <p className="text-yellow-400 text-sm font-semibold mb-1">Paystack Coming Soon</p>
+                <p className="text-yellow-400 text-sm font-bold mb-1">Paystack Coming Soon</p>
                 <p className="text-gray-400 text-xs">
-                  For Nigeria: ₦4,000 (Basic) or ₦6,000 (Premium)/month. 
+                  For Nigeria: ₦2,500 (Basic) or ₦4,000 (Premium)/month. 
                   Other countries: Free access while Paystack is being set up.
                 </p>
               </div>
 
               <button 
                 onClick={() => handleSubscriptionSuccess({ reference: 'demo_' + Date.now() })}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-all"
               >
                 Activate {SUBSCRIPTION_PLANS[selectedPlan].name} (Demo)
               </button>
@@ -505,7 +566,7 @@ export default function WalletPage() {
               </div>
 
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                <p className="text-yellow-400 text-sm font-semibold">Paystack Coming Soon</p>
+                <p className="text-yellow-400 text-sm font-bold">Paystack Coming Soon</p>
                 <p className="text-gray-400 text-xs mt-1">Coin purchases will be available once Paystack is integrated.</p>
               </div>
             </div>
