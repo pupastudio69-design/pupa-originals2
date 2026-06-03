@@ -6,6 +6,7 @@ import SplashScreen from './components/SplashScreen';
 import TopNavbar from './components/TopNavbar';
 import BottomNavbar from './components/BottomNavbar';
 import SearchOverlay from './components/SearchOverlay';
+import CategoriesOverlay from './components/CategoriesOverlay';
 import HomePage from './pages/HomePage';
 import MovieDetailPage from './pages/MovieDetailPage';
 import WalletPage from './pages/WalletPage';
@@ -14,11 +15,12 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 
-// Main app with tabs (your existing layout)
+// Main app with tabs
 function MainApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   const handleMovieSelect = (movie) => {
     setSelectedMovie(movie);
@@ -28,8 +30,15 @@ function MainApp() {
     setSelectedMovie(null);
   };
 
+  const handleCategorySelect = (category) => {
+    // You can filter movies by category here
+    console.log('Selected category:', category);
+    // Optionally show a toast or filter the home page
+  };
+
   return (
     <div className="relative min-h-screen bg-pupa-bg noise">
+      {/* Overlays */}
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -37,19 +46,36 @@ function MainApp() {
         />
       )}
 
-      {selectedMovie && !searchOpen && (
+      {categoriesOpen && (
+        <CategoriesOverlay
+          onClose={() => setCategoriesOpen(false)}
+          onCategorySelect={handleCategorySelect}
+        />
+      )}
+
+      {/* Movie Detail View */}
+      {selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
           <MovieDetailPage movie={selectedMovie} onBack={handleBack} />
-          <BottomNavbar active={activeTab} onChange={setActiveTab} />
+          <BottomNavbar active={activeTab} onChange={(tab) => {
+            setActiveTab(tab);
+            if (tab !== 'home') setSelectedMovie(null);
+          }} />
         </>
       )}
 
-      {!selectedMovie && !searchOpen && (
+      {/* Main Tab Views */}
+      {!selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
           <main>
-            {activeTab === 'home' && <HomePage onMovieSelect={handleMovieSelect} />}
+            {activeTab === 'home' && (
+              <HomePage 
+                onMovieSelect={handleMovieSelect} 
+                onCategoriesOpen={() => setCategoriesOpen(true)}
+              />
+            )}
             {activeTab === 'wallet' && <WalletPage />}
             {activeTab === 'downloads' && <DownloadsPage />}
             {activeTab === 'me' && <ProfilePage />}
