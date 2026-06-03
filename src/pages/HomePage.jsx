@@ -27,7 +27,7 @@ function ContinueWatchingCard({ movie, onClick }) {
         <div
           className="h-full"
           style={{
-            width: `${movie.progress}%`,
+            width: `${movie.progress || 0}%`,
             background: 'linear-gradient(90deg, #16a34a, #facc15)',
           }}
         />
@@ -35,7 +35,7 @@ function ContinueWatchingCard({ movie, onClick }) {
 
       <div className="absolute bottom-2 left-2 right-2">
         <p className="text-white text-[11px] font-body font-medium line-clamp-1">{movie.title}</p>
-        <p className="text-gray-400 text-[9px]">{movie.progress}% watched</p>
+        <p className="text-gray-400 text-[9px]">{movie.progress || 0}% watched</p>
       </div>
 
       {/* Play overlay */}
@@ -50,7 +50,7 @@ function ContinueWatchingCard({ movie, onClick }) {
   );
 }
 
-export default function HomePage({ onMovieSelect }) {
+export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
   const [continueWatching, setContinueWatching] = useState([]);
   const [loadingContinue, setLoadingContinue] = useState(true);
   const [user, setUser] = useState(null);
@@ -63,7 +63,6 @@ export default function HomePage({ onMovieSelect }) {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            // Get watchHistory from Firestore, fallback to empty array
             const history = data.watchHistory || [];
             setContinueWatching(history);
           } else {
@@ -136,7 +135,12 @@ export default function HomePage({ onMovieSelect }) {
 
       <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} onMovieSelect={onMovieSelect} badge="gold" size="lg" />
       <ContentRow title="New Releases" movies={NEW_RELEASES} onMovieSelect={onMovieSelect} badge="new" />
-      <CategoriesGrid />
+
+      {/* Categories - now clickable */}
+      <div onClick={onCategoriesOpen} className="cursor-pointer">
+        <CategoriesGrid />
+      </div>
+
       <ContentRow title="African Hits" movies={AFRICAN_HITS} onMovieSelect={onMovieSelect} />
 
       {/* Coming Soon section */}
@@ -159,7 +163,10 @@ export default function HomePage({ onMovieSelect }) {
         <p className="text-gray-400 text-xs font-body mb-4 leading-relaxed">
           Get exclusive access to new Pupa Originals up to 2 weeks before general release.
         </p>
-        <button className="btn-gold px-5 py-2.5 rounded-xl text-sm font-bold">
+        <button 
+          onClick={(e) => { e.stopPropagation(); /* navigate to premium */ }}
+          className="btn-gold px-5 py-2.5 rounded-xl text-sm font-bold"
+        >
           Upgrade to Premium
         </button>
       </div>
