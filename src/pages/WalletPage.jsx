@@ -1,68 +1,47 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { auth, db } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
 import { 
   Wallet, CreditCard, ArrowUpRight, Gift, Copy, Check, 
-  X, Crown, Star, Loader2
+  X, Crown, Star, Loader2, Zap, Globe, Lock, Play, Eye
 } from 'lucide-react';
 
-// Inline AuthContext in case the external one fails
-const InlineAuthContext = createContext(null);
-
-function useInlineAuth() {
-  const context = useContext(InlineAuthContext);
-  if (!context) {
-    // Fallback: get user directly from Firebase auth state
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-      const unsub = onAuthStateChanged(auth, (u) => {
-        setUser(u);
-        setLoading(false);
-      });
-      return unsub;
-    }, []);
-
-    return { user, loading, signup: null, login: null, logout: null };
-  }
-  return context;
-}
-
-// Try to import external AuthContext, fallback to inline if it fails
-let useAuth;
-try {
-  const authModule = require('../contexts/AuthContext');
-  useAuth = authModule.useAuth || useInlineAuth;
-} catch (e) {
-  useAuth = useInlineAuth;
-}
-
 const SUBSCRIPTION_PLANS = {
-  monthly: { name: 'Monthly', price: 1500, period: 'month', features: ['HD Streaming', 'No Ads', 'Download Movies'] },
-  quarterly: { name: '3 Months', price: 4000, period: '3 months', features: ['HD Streaming', 'No Ads', 'Download Movies', 'Early Access'], popular: true },
-  yearly: { name: 'Yearly', price: 12000, period: 'year', features: ['4K Streaming', 'No Ads', 'Download Movies', 'Early Access', 'Exclusive Content'] }
+  basic: { 
+    name: 'Basic', 
+    price: 4000, 
+    period: 'month', 
+    features: ['4K Streaming', 'With Ads', 'Standard Movies'],
+    hasAds: true
+  },
+  premium: { 
+    name: 'Premium', 
+    price: 6000, 
+    period: 'month', 
+    features: ['4K Streaming', 'No Ads', 'Early Releases', 'BTS Content', 'Exclusive'],
+    hasAds: false,
+    popular: true
+  }
 };
 
 const TOPUP_AMOUNTS = [500, 1000, 2000, 5000, 10000];
 
 export default function WalletPage() {
-  // Get auth data safely
-  let authData;
-  try {
-    authData = useAuth();
-  } catch (e) {
-    authData = { user: null, loading: false };
-  }
-
-  const { user } = authData || { user: null };
-  const [wallet, setWallet] = useState({ balance: 0, points: 0, referralCode: '', referrals: 0 });
+  const { user } = useAuth();
+  const [wallet, setWallet] = useState({ 
+    balance: 0, 
+    points: 0, 
+    referralCode: '', 
+    referrals: 0,
+    coins: 0
+  });
   const [transactions, setTransactions] = useState([]);
   const [showTopup, setShowTopup] = useState(false);
   const [showSubscribe, setShowSubscribe] = useState(false);
+  const [showCoins, setShowCoins] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(1000);
-  const [selectedPlan, setSelectedPlan] = useState('quarterly');
+  const [selectedPlan, setSelectedPlan] = useState('premium');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -90,6 +69,7 @@ export default function WalletPage() {
         const newWallet = {
           balance: 0,
           points: 0,
+          coins: 0,
           referralCode: 'PUPA' + Math.random().toString(36).substring(2, 8).toUpperCase(),
           referrals: 0,
           subscription: null,
@@ -121,47 +101,11 @@ export default function WalletPage() {
     }
   };
 
-  const handleTopupSuccess = async (response) => {
-    try {
-      const walletRef = doc(db, 'wallets', user.uid);
-      const currentBalance = wallet.balance || 0;
-      const newBalance = currentBalance + selectedAmount;
-
-      await updateDoc(walletRef, {
-        balance: newBalance,
-        lastTopup: serverTimestamp()
-      });
-
-      await addDoc(collection(db, 'transactions'), {
-        userId: user.uid,
-        type: 'topup',
-        amount: selectedAmount,
-        reference: response?.reference || 'manual_' + Date.now(),
-        status: 'success',
-        paymentMethod: 'paystack',
-        createdAt: serverTimestamp()
-      });
-
-      setWallet(prev => ({ ...prev, balance: newBalance }));
-      setPaymentSuccess({ type: 'topup', amount: selectedAmount });
-      setShowTopup(false);
-      loadTransactions();
-
-      setTimeout(() => setPaymentSuccess(null), 5000);
-    } catch (err) {
-      console.error('Error processing topup:', err);
-      setError('Payment succeeded but failed to update wallet. Contact support.');
-    }
-  };
-
   const handleSubscriptionSuccess = async (response) => {
     try {
       const plan = SUBSCRIPTION_PLANS[selectedPlan];
       const expiryDate = new Date();
-
-      if (selectedPlan === 'monthly') expiryDate.setMonth(expiryDate.getMonth() + 1);
-      else if (selectedPlan === 'quarterly') expiryDate.setMonth(expiryDate.getMonth() + 3);
-      else if (selectedPlan === 'yearly') expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
 
       const walletRef = doc(db, 'wallets', user.uid);
       await updateDoc(walletRef, {
@@ -212,6 +156,8 @@ export default function WalletPage() {
     ? Math.ceil((wallet.subscription.expiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
 
+  const currentPlan = isSubscribed ? SUBSCRIPTION_PLANS[wallet.subscription.plan] : null;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
@@ -237,7 +183,7 @@ export default function WalletPage() {
       {/* Header */}
       <div className="bg-gradient-to-b from-purple-900/50 to-[#0a0a1a] pt-12 pb-8 px-4">
         <h1 className="text-2xl font-bold text-white mb-1">Wallet</h1>
-        <p className="text-gray-400 text-sm">Manage your funds and subscription</p>
+        <p className="text-gray-400 text-sm">Manage your subscription, points & coins</p>
       </div>
 
       <div className="px-4 space-y-6">
@@ -263,75 +209,83 @@ export default function WalletPage() {
               </div>
               <div>
                 <p className="text-green-400 font-semibold text-sm">
-                  {paymentSuccess.type === 'topup' 
-                    ? `₦${paymentSuccess.amount.toLocaleString()} added to wallet!` 
-                    : `${paymentSuccess.plan} subscription activated!`}
+                  {paymentSuccess.type === 'subscription' 
+                    ? `${paymentSuccess.plan} subscription activated!` 
+                    : 'Payment successful!'}
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Balance Card */}
-        <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 relative overflow-hidden">
+        {/* Subscription Status Card */}
+        <div className={`rounded-2xl p-6 relative overflow-hidden ${
+          isSubscribed 
+            ? 'bg-gradient-to-br from-purple-600 to-pink-600' 
+            : 'bg-gradient-to-br from-gray-700 to-gray-800'
+        }`}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-10 -mb-10" />
 
           <div className="relative z-10">
-            <p className="text-white/70 text-sm mb-1">Available Balance</p>
-            <h2 className="text-4xl font-bold text-white mb-4">₦{(wallet?.balance || 0).toLocaleString()}</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-white/70 text-sm">
+                  {isSubscribed ? 'Current Plan' : 'No Active Plan'}
+                </p>
+                <h2 className="text-3xl font-bold text-white">
+                  {isSubscribed ? currentPlan?.name : 'Free'}
+                </h2>
+              </div>
+              {isSubscribed && (
+                <div className="text-right">
+                  <p className="text-green-400 font-bold text-sm">{subscriptionDaysLeft} days</p>
+                  <p className="text-white/60 text-xs">remaining</p>
+                </div>
+              )}
+            </div>
+
+            {isSubscribed && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {currentPlan?.features.map(feature => (
+                  <span key={feature} className="text-xs text-white/80 bg-white/10 px-2 py-1 rounded">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-3">
-              <button 
-                onClick={() => setShowTopup(true)}
-                className="flex-1 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-semibold text-sm hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                Top Up
-              </button>
               <button 
                 onClick={() => setShowSubscribe(true)}
                 className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2
                   ${isSubscribed 
-                    ? 'bg-green-500/20 text-green-400' 
-                    : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'}`}
+                    ? 'bg-white/20 text-white hover:bg-white/30' 
+                    : 'bg-white text-purple-600 hover:bg-gray-100'}`}
               >
                 <Crown className="w-4 h-4" />
-                {isSubscribed ? 'Active' : 'Subscribe'}
+                {isSubscribed ? 'Change Plan' : 'Subscribe'}
+              </button>
+              <button 
+                onClick={() => setShowCoins(true)}
+                className="flex-1 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-semibold text-sm hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                Buy Coins
               </button>
             </div>
           </div>
         </div>
 
-        {/* Subscription Status */}
-        {isSubscribed && (
-          <div className="bg-[#1a1a2e] rounded-xl p-4 border border-green-500/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-sm">Premium Active</p>
-                  <p className="text-gray-400 text-xs">{SUBSCRIPTION_PLANS[wallet.subscription.plan]?.name || 'Premium'} Plan</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-green-400 font-bold text-sm">{subscriptionDaysLeft} days</p>
-                <p className="text-gray-500 text-xs">remaining</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Points & Referral */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Points, Referrals & Coins */}
+        <div className="grid grid-cols-3 gap-3">
           <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-4 h-4 text-yellow-400" />
               <span className="text-gray-400 text-xs">Points</span>
             </div>
             <p className="text-white font-bold text-xl">{(wallet?.points || 0).toLocaleString()}</p>
+            <p className="text-gray-500 text-[10px] mt-1">Unlock BTS & Early</p>
           </div>
 
           <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
@@ -340,13 +294,26 @@ export default function WalletPage() {
               <span className="text-gray-400 text-xs">Referrals</span>
             </div>
             <p className="text-white font-bold text-xl">{wallet?.referrals || 0}</p>
+            <p className="text-gray-500 text-[10px] mt-1">+1pt per signup</p>
+          </div>
+
+          <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-orange-400" />
+              <span className="text-gray-400 text-xs">Coins</span>
+            </div>
+            <p className="text-white font-bold text-xl">{(wallet?.coins || 0).toLocaleString()}</p>
+            <p className="text-gray-500 text-[10px] mt-1">Gift creators</p>
           </div>
         </div>
 
         {/* Referral Link */}
         <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
-          <p className="text-white font-semibold text-sm mb-3">Refer & Earn</p>
-          <p className="text-gray-400 text-xs mb-3">Share your link. Earn ₦200 when friends join and subscribe.</p>
+          <p className="text-white font-semibold text-sm mb-2">Refer & Earn Points</p>
+          <p className="text-gray-400 text-xs mb-3">
+            Share your link. Earn 1 point per friend who joins. Use points to unlock BTS & Early Releases. 
+            <span className="text-red-400"> Points cannot be used for gifting creators.</span>
+          </p>
 
           <div className="flex gap-2">
             <div className="flex-1 bg-black/30 rounded-lg px-3 py-2 text-gray-400 text-xs truncate">
@@ -359,6 +326,40 @@ export default function WalletPage() {
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
+          </div>
+        </div>
+
+        {/* How Points Work */}
+        <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
+          <p className="text-white font-semibold text-sm mb-3">How Points Work</p>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-purple-400 text-xs font-bold">1</span>
+              </div>
+              <div>
+                <p className="text-white text-sm">Refer Friends</p>
+                <p className="text-gray-400 text-xs">Get 1 point for each friend who downloads the app</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-purple-400 text-xs font-bold">2</span>
+              </div>
+              <div>
+                <p className="text-white text-sm">Unlock Content</p>
+                <p className="text-gray-400 text-xs">Use points to unlock BTS & Early Releases</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-red-400 text-xs font-bold">✕</span>
+              </div>
+              <div>
+                <p className="text-white text-sm">Cannot Gift Creators</p>
+                <p className="text-gray-400 text-xs">To gift creators, you must buy coins with real money</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -376,9 +377,9 @@ export default function WalletPage() {
                 <div key={tx.id} className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center
-                      ${tx.type === 'topup' ? 'bg-green-500/20' : tx.type === 'subscription' ? 'bg-purple-500/20' : 'bg-blue-500/20'}`}>
-                      {tx.type === 'topup' ? <ArrowUpRight className="w-5 h-5 text-green-400" /> :
-                       tx.type === 'subscription' ? <Crown className="w-5 h-5 text-purple-400" /> :
+                      ${tx.type === 'subscription' ? 'bg-purple-500/20' : tx.type === 'coins' ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
+                      {tx.type === 'subscription' ? <Crown className="w-5 h-5 text-purple-400" /> :
+                       tx.type === 'coins' ? <Zap className="w-5 h-5 text-orange-400" /> :
                        <CreditCard className="w-5 h-5 text-blue-400" />}
                     </div>
                     <div>
@@ -389,8 +390,8 @@ export default function WalletPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-semibold text-sm ${tx.type === 'topup' ? 'text-green-400' : 'text-white'}`}>
-                      {tx.type === 'topup' ? '+' : '-'}₦{tx.amount?.toLocaleString()}
+                    <p className="font-semibold text-sm text-white">
+                      -₦{tx.amount?.toLocaleString()}
                     </p>
                     <p className="text-gray-500 text-xs capitalize">{tx.status}</p>
                   </div>
@@ -400,53 +401,6 @@ export default function WalletPage() {
           )}
         </div>
       </div>
-
-      {/* Top Up Modal */}
-      {showTopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-[#0a0a1a] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-white/10">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Top Up Wallet</h2>
-                <button onClick={() => setShowTopup(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {TOPUP_AMOUNTS.map(amount => (
-                  <button
-                    key={amount}
-                    onClick={() => setSelectedAmount(amount)}
-                    className={`py-3 rounded-xl font-semibold text-sm transition-all
-                      ${selectedAmount === amount 
-                        ? 'bg-purple-600 text-white' 
-                        : 'bg-[#1a1a2e] text-gray-400 hover:bg-[#252540]'}`}
-                  >
-                    ₦{amount.toLocaleString()}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mb-4">
-                <label className="text-gray-400 text-xs mb-2 block">Custom Amount</label>
-                <input
-                  type="number"
-                  value={selectedAmount}
-                  onChange={(e) => setSelectedAmount(Number(e.target.value))}
-                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                  placeholder="Enter amount"
-                />
-              </div>
-
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                <p className="text-yellow-400 text-sm font-semibold mb-1">Paystack Coming Soon</p>
-                <p className="text-gray-400 text-xs">Payment integration will be added shortly. For now, this is a preview.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Subscribe Modal */}
       {showSubscribe && (
@@ -477,9 +431,15 @@ export default function WalletPage() {
                     )}
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-white font-semibold">{plan.name}</span>
-                      <span className="text-purple-400 font-bold">₦{plan.price.toLocaleString()}</span>
+                      <span className="text-purple-400 font-bold">₦{plan.price.toLocaleString()}/mo</span>
                     </div>
-                    <p className="text-gray-400 text-xs mb-2">per {plan.period}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      {plan.hasAds ? (
+                        <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">With Ads</span>
+                      ) : (
+                        <span className="text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded">No Ads</span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {plan.features.map(feature => (
                         <span key={feature} className="text-[10px] text-gray-500 bg-black/30 px-2 py-1 rounded">
@@ -491,9 +451,62 @@ export default function WalletPage() {
                 ))}
               </div>
 
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-4">
                 <p className="text-yellow-400 text-sm font-semibold mb-1">Paystack Coming Soon</p>
-                <p className="text-gray-400 text-xs">Payment integration will be added shortly. For now, this is a preview.</p>
+                <p className="text-gray-400 text-xs">
+                  For Nigeria: ₦4,000 (Basic) or ₦6,000 (Premium)/month. 
+                  Other countries: Free access while Paystack is being set up.
+                </p>
+              </div>
+
+              <button 
+                onClick={() => handleSubscriptionSuccess({ reference: 'demo_' + Date.now() })}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+              >
+                Activate {SUBSCRIPTION_PLANS[selectedPlan].name} (Demo)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Buy Coins Modal */}
+      {showCoins && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-[#0a0a1a] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-white/10">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Buy Coins</h2>
+                <button onClick={() => setShowCoins(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
+
+              <p className="text-gray-400 text-sm mb-4">
+                Coins are used to gift creators. Points cannot be used for gifting.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  { amount: 100, price: 500 },
+                  { amount: 250, price: 1000 },
+                  { amount: 500, price: 2000 },
+                  { amount: 1000, price: 3500 }
+                ].map(pkg => (
+                  <button
+                    key={pkg.amount}
+                    className="p-4 rounded-xl border border-white/10 bg-[#1a1a2e] hover:border-purple-500 transition-all text-center"
+                  >
+                    <Zap className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                    <p className="text-white font-bold">{pkg.amount} Coins</p>
+                    <p className="text-purple-400 text-sm">₦{pkg.price.toLocaleString()}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                <p className="text-yellow-400 text-sm font-semibold">Paystack Coming Soon</p>
+                <p className="text-gray-400 text-xs mt-1">Coin purchases will be available once Paystack is integrated.</p>
               </div>
             </div>
           </div>
