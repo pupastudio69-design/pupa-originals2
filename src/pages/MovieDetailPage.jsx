@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Play, Share2, Download, Bookmark, Heart, 
@@ -13,8 +12,8 @@ import {
 const auth = getAuth();
 const db = getFirestore();
 
-// YouTube Embed Player
-function VideoPlayer({ videoUrl, title, onClose }) {
+// Video Player - supports both YouTube and MP4
+function VideoPlayer({ videoUrl, videoType, title, onClose }) {
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 bg-black/80">
@@ -24,14 +23,26 @@ function VideoPlayer({ videoUrl, title, onClose }) {
         </button>
       </div>
       <div className="flex-1 flex items-center justify-center">
-        <iframe
-          src={videoUrl}
-          title={title}
-          className="w-full h-full"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        {videoType === 'youtube' ? (
+          <iframe
+            src={videoUrl}
+            title={title}
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video
+            src={videoUrl}
+            controls
+            autoPlay
+            className="w-full h-full"
+            style={{ maxHeight: '100vh' }}
+          >
+            Your browser does not support the video tag.
+          </video>
+        )}
       </div>
     </div>
   );
@@ -226,7 +237,6 @@ export default function MovieDetailPage({ movie, onBack }) {
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
       alert('Link copied to clipboard!');
     }
@@ -237,10 +247,11 @@ export default function MovieDetailPage({ movie, onBack }) {
       alert('Download not available for YouTube videos. Use the Watch Now button to stream.');
       return;
     }
-    // For direct MP4 files
+    // For MP4 files
     const a = document.createElement('a');
     a.href = movie.videoUrl;
     a.download = `${movie.title}.mp4`;
+    a.target = '_blank';
     a.click();
   };
 
@@ -258,6 +269,7 @@ export default function MovieDetailPage({ movie, onBack }) {
       {showVideo && (
         <VideoPlayer 
           videoUrl={movie.videoUrl} 
+          videoType={movie.videoType}
           title={movie.title}
           onClose={() => setShowVideo(false)}
         />
