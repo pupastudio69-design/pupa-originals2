@@ -1,5 +1,6 @@
-// Real African movies with WORKING Internet Archive URLs
-// All videos are h.264 MP4 files from archive.org (public domain / Creative Commons)
+// African movies with YouTube embed URLs
+// These are Nollywood movies archived on Internet Archive, played via YouTube embed
+// Source attribution shows Archive.org as the original source
 
 export const TRENDING = [
   {
@@ -14,8 +15,9 @@ export const TRENDING = [
     description: "They love each other very much and were supposed to get married when the young man started having doubts. A Latest African Nigerian Nollywood Full Movie starring Tonto Dikeh.",
     cast: ["Tonto Dikeh", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-faL4ZzKTuLY/youtube-faL4ZzKTuLY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/faL4ZzKTuLY",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -31,8 +33,9 @@ export const TRENDING = [
     description: "Mr Benson and his wife lost their children accidentally but run into an abandoned baby in the bush. This baby will soon turn out to be the beginning of their worst nightmare.",
     cast: ["Mercy Johnson", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-UpEx4z4Fej4/youtube-UpEx4z4Fej4.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/UpEx4z4Fej4",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -48,8 +51,9 @@ export const TRENDING = [
     description: "An innocent boy is faced with so much hatred from his own family. The king's blood and devil's ambition collide in this epic Nollywood saga.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-EOQyGU5VguY/youtube-EOQyGU5VguY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/EOQyGU5VguY",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -65,8 +69,9 @@ export const TRENDING = [
     description: "Two young people promise to love each other forever, but envy from the village threatens to tear them apart.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-LH8ESNL3LDk/youtube-LH8ESNL3LDk.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/LH8ESNL3LDk",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -82,8 +87,9 @@ export const TRENDING = [
     description: "What level of envy and jealousy can drive a lady into murdering her blood sister in a bid to take over her man? This is outrageous.",
     cast: ["Ghanaian Stars", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-NKrHwHSCajo/youtube-NKrHwHSCajo.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/NKrHwHSCajo",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -99,8 +105,9 @@ export const TRENDING = [
     description: "There has always been a huge gap between the rich and poor. An innocent girl caught in the web of love and class struggle.",
     cast: ["Mercy Johnson", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-UWoXG0z9o04/youtube-UWoXG0z9o04.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/UWoXG0z9o04",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   }
@@ -117,10 +124,11 @@ export const PUPA_ORIGINALS = [
     rating: "9.1",
     duration: "2h 18m",
     description: "In the heart of the Sahara, a forgotten dynasty awakens. A young warrior must reclaim her birthright before an ancient darkness consumes the land.",
-    cast: ["Unknown"],
+    cast: ["Coming Soon"],
     director: "Pupa Studios",
-    videoUrl: "https://archive.org/download/youtube-faL4ZzKTuLY/youtube-faL4ZzKTuLY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/EOQyGU5VguY",
+    videoType: "youtube",
+    source: "pupa",
     isPupa: true,
     price: 800
   },
@@ -134,10 +142,11 @@ export const PUPA_ORIGINALS = [
     rating: "8.8",
     duration: "2h 30m",
     description: "The untold story of Queen Idia, the warrior queen who defended the Benin Kingdom against invaders in the 16th century.",
-    cast: ["Unknown"],
+    cast: ["Coming Soon"],
     director: "Pupa Studios",
-    videoUrl: "https://archive.org/download/youtube-EOQyGU5VguY/youtube-EOQyGU5VguY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/EOQyGU5VguY",
+    videoType: "youtube",
+    source: "pupa",
     isPupa: true,
     price: 1000
   },
@@ -151,10 +160,11 @@ export const PUPA_ORIGINALS = [
     rating: "8.3",
     duration: "1h 45m",
     description: "A detective uncovers a conspiracy that reaches the highest levels of Lagos politics. One night changes everything.",
-    cast: ["Unknown"],
+    cast: ["Coming Soon"],
     director: "Pupa Studios",
-    videoUrl: "https://archive.org/download/youtube-NKrHwHSCajo/youtube-NKrHwHSCajo.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/NKrHwHSCajo",
+    videoType: "youtube",
+    source: "pupa",
     isPupa: true,
     price: 800
   },
@@ -168,10 +178,11 @@ export const PUPA_ORIGINALS = [
     rating: "8.7",
     duration: "2h 22m",
     description: "The final chapter of a royal bloodline. A prince must choose between love and duty as his kingdom faces invasion.",
-    cast: ["Unknown"],
+    cast: ["Coming Soon"],
     director: "Pupa Studios",
-    videoUrl: "https://archive.org/download/youtube-EOQyGU5VguY/youtube-EOQyGU5VguY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/EOQyGU5VguY",
+    videoType: "youtube",
+    source: "pupa",
     isPupa: true,
     price: 1200
   },
@@ -187,8 +198,9 @@ export const PUPA_ORIGINALS = [
     description: "A musical journey across Africa, celebrating the continent's rich musical heritage from Afrobeat to Amapiano.",
     cast: ["Various Artists"],
     director: "Pupa Studios",
-    videoUrl: "https://archive.org/download/youtube-faL4ZzKTuLY/youtube-faL4ZzKTuLY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/faL4ZzKTuLY",
+    videoType: "youtube",
+    source: "pupa",
     isPupa: true,
     price: 600
   }
@@ -207,8 +219,9 @@ export const NEW_RELEASES = [
     description: "Passion and true love from one end and infatuation, pride, lust and rage from the other end but Ebiye has to make her choice against her mother's wish.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-aIAwmFeQU5s/youtube-aIAwmFeQU5s.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/aIAwmFeQU5s",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -224,8 +237,9 @@ export const NEW_RELEASES = [
     description: "An innocent boy is faced with so much hatred from his own family. The quest for the throne leads to betrayal and bloodshed.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-pEjN8aqv7Sk/youtube-pEjN8aqv7Sk.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/pEjN8aqv7Sk",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -241,8 +255,9 @@ export const NEW_RELEASES = [
     description: "About a woman who tried to make her husband happy because he was frustrated about not being able to get a child. Love tested by fate.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-1blG-Rt6M-s/youtube-1blG-Rt6M-s.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/1blG-Rt6M-s",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -258,8 +273,9 @@ export const NEW_RELEASES = [
     description: "Ekwutos takes the life of a young beautiful girl at her early age out of wickedness. A gripping tale of justice and revenge.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-Y6wYyq96nKY/youtube-Y6wYyq96nKY.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/Y6wYyq96nKY",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -275,8 +291,9 @@ export const NEW_RELEASES = [
     description: "Chief Onowuichie can become king only if the king dies. Betrayal runs deep in the palace as everyone schemes for the throne.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-bq7zA0y-Bh4/youtube-bq7zA0y-Bh4.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/bq7zA0y-Bh4",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   }
@@ -295,8 +312,9 @@ export const AFRICAN_HITS = [
     description: "The Princess, against the will of the gods, forcefully takes the mantle of the Beauty of the Gods that doesn't belong to her and the villagers suffer for her actions.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-De_EcD7MHjQ/youtube-De_EcD7MHjQ.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/De_EcD7MHjQ",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -312,8 +330,9 @@ export const AFRICAN_HITS = [
     description: "Just a few days to Cleopatra's coronation, secrets that has been kept from her by her father starts unfolding, this leads to his enemies coming after him one after the other.",
     cast: ["Chacha Eke", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-TCXxSdkIoy4/youtube-TCXxSdkIoy4.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/TCXxSdkIoy4",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -329,8 +348,9 @@ export const AFRICAN_HITS = [
     description: "A Latest African Nollywood Nigerian Movies Latest 2016 Full Movies. Two hearts beat as one until tragedy strikes.",
     cast: ["Ghanaian Stars", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube--KAEloOBCVI/youtube--KAEloOBCVI.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/-KAEloOBCVI",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -346,8 +366,9 @@ export const AFRICAN_HITS = [
     description: "The continuation of the epic love story. Will their love survive the trials and tribulations?",
     cast: ["Tonto Dikeh", "Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-oVAEDCvtyGU/youtube-oVAEDCvtyGU.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/oVAEDCvtyGU",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   },
@@ -363,8 +384,9 @@ export const AFRICAN_HITS = [
     description: "Part 2 of the epic saga. The battle for the throne intensifies as dark secrets are revealed.",
     cast: ["Nollywood Stars"],
     director: "NOLLYSTAR",
-    videoUrl: "https://archive.org/download/youtube-3-dGLEtutHc/youtube-3-dGLEtutHc.mp4",
-    videoType: "mp4",
+    videoUrl: "https://www.youtube.com/embed/3-dGLEtutHc",
+    videoType: "youtube",
+    source: "archive.org",
     isPupa: false,
     price: 0
   }
