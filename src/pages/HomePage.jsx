@@ -22,7 +22,6 @@ function ContinueWatchingCard({ movie, onClick }) {
       <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-      {/* Progress bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
         <div
           className="h-full"
@@ -38,7 +37,6 @@ function ContinueWatchingCard({ movie, onClick }) {
         <p className="text-gray-400 text-[9px]">{movie.progress || 0}% watched</p>
       </div>
 
-      {/* Play overlay */}
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="w-10 h-10 rounded-full bg-yellow-400/90 flex items-center justify-center">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -80,12 +78,10 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
     return () => unsubscribe();
   }, []);
 
-  // Recently Added — sort by newest year first
   const recentlyAdded = [...TRENDING, ...NEW_RELEASES]
     .sort((a, b) => (b.year || 0) - (a.year || 0))
     .slice(0, 10);
 
-  // Coming Soon — movies with year > current year or explicit comingSoon flag
   const currentYear = new Date().getFullYear();
   const comingSoon = [...PUPA_ORIGINALS, ...AFRICAN_HITS]
     .filter(m => m.year > currentYear || m.comingSoon)
@@ -93,10 +89,8 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
 
   return (
     <div className="min-h-screen bg-pupa-bg pb-24">
-      {/* Hero */}
       <HeroBanner onMovieSelect={onMovieSelect} />
 
-      {/* Continue Watching — real data from Firestore */}
       {user && continueWatching.length > 0 && (
         <section className="mb-8 mt-4">
           <div className="flex items-center justify-between px-4 mb-3">
@@ -111,7 +105,6 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
         </section>
       )}
 
-      {/* Not signed in prompt */}
       {!user && !loadingContinue && (
         <section className="mb-8 mt-4 mx-4">
           <div className="rounded-xl p-4 bg-white/5 border border-white/10 flex items-center gap-3">
@@ -129,28 +122,34 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
       )}
 
       <ContentRow title="Trending Now" movies={TRENDING} onMovieSelect={onMovieSelect} />
-
-      {/* Recently Added section */}
       <ContentRow title="Recently Added" movies={recentlyAdded} onMovieSelect={onMovieSelect} badge="new" />
-
       <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} onMovieSelect={onMovieSelect} badge="gold" size="lg" />
       <ContentRow title="New Releases" movies={NEW_RELEASES} onMovieSelect={onMovieSelect} badge="new" />
 
-      {/* Categories - now clickable */}
-      <div onClick={onCategoriesOpen} className="cursor-pointer">
-        <CategoriesGrid />
-      </div>
+      {/* Categories - click to open overlay */}
+      <section className="mb-8 px-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-body font-semibold text-white text-base">Categories</h2>
+          <button 
+            onClick={onCategoriesOpen}
+            className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors"
+          >
+            See all
+          </button>
+        </div>
+        <div onClick={onCategoriesOpen} className="cursor-pointer">
+          <CategoriesGrid />
+        </div>
+      </section>
 
       <ContentRow title="African Hits" movies={AFRICAN_HITS} onMovieSelect={onMovieSelect} />
 
-      {/* Coming Soon section */}
       {comingSoon.length > 0 && (
         <ContentRow title="Coming Soon" movies={comingSoon} onMovieSelect={onMovieSelect} badge="soon" />
       )}
 
       <Top10Row onMovieSelect={onMovieSelect} />
 
-      {/* Premium Early Access banner */}
       <div className="mx-4 mb-8 rounded-2xl p-5 relative overflow-hidden" style={{
         background: 'linear-gradient(135deg, #064e2a 0%, #0d3b23 60%, #041b11 100%)',
         border: '1px solid rgba(250,204,21,0.25)',
@@ -163,10 +162,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
         <p className="text-gray-400 text-xs font-body mb-4 leading-relaxed">
           Get exclusive access to new Pupa Originals up to 2 weeks before general release.
         </p>
-        <button 
-          onClick={(e) => { e.stopPropagation(); /* navigate to premium */ }}
-          className="btn-gold px-5 py-2.5 rounded-xl text-sm font-bold"
-        >
+        <button className="btn-gold px-5 py-2.5 rounded-xl text-sm font-bold">
           Upgrade to Premium
         </button>
       </div>
