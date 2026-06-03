@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { auth, app } from './firebase';
 import SplashScreen from './components/SplashScreen';
 import TopNavbar from './components/TopNavbar';
 import BottomNavbar from './components/BottomNavbar';
@@ -12,19 +13,52 @@ import MovieDetailPage from './pages/MovieDetailPage';
 import WalletPage from './pages/WalletPage';
 import DownloadsPage from './pages/DownloadsPage';
 import ProfilePage from './pages/ProfilePage';
+import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
+
+// Initialize Firebase Messaging
+let messaging = null;
+try {
+  messaging = getMessaging(app);
+} catch (err) {
+  console.log('Firebase Messaging not available:', err);
+}
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
-  // Debug: log state changes
+  // Request push notification permission
   useEffect(() => {
-    console.log('categoriesOpen changed:', categoriesOpen);
-  }, [categoriesOpen]);
+    if (messaging && 'Notification' in window) {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' })
+            .then((token) => {
+              console.log('Push notification token:', token);
+              // Save token to Firestore for this user
+            })
+            .catch((err) => console.log('Token error:', err));
+        }
+      });
+
+      // Handle foreground messages
+      onMessage(messaging, (payload) => {
+        console.log('Message received:', payload);
+        // Show custom notification or update UI
+        if (Notification.permission === 'granted') {
+          new Notification(payload.notification.title, {
+            body: payload.notification.body,
+            icon: '/pupa-icon.png',
+          });
+        }
+      });
+    }
+  }, []);
 
   const handleMovieSelect = (movie) => {
     setSelectedMovie(movie);
@@ -35,17 +69,35 @@ function MainApp() {
   };
 
   const handleCategoriesOpen = () => {
-    console.log('Opening categories from button click');
     setCategoriesOpen(true);
   };
 
   const handleCategorySelect = (category) => {
-    console.log('Category selected:', category.name);
+    console.log('Category selected:', category);
   };
+
+  const handleTermsClick = () => {
+    setShowTerms(true);
+  };
+
+  const handleTermsBack = () => {
+    setShowTerms(false);
+  };
+
+  // Show Terms page
+  if (showTerms) {
+    return (
+      <div className="relative min-h-screen bg-pupa-bg">
+        <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
+        <TermsPage onBack={handleTermsBack} />
+        <BottomNavbar active={activeTab} onChange={setActiveTab} />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-pupa-bg noise">
-      {/* Search Overlay */}
+      {/* Overlays */}
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -53,7 +105,6 @@ function MainApp() {
         />
       )}
 
-      {/* Categories Overlay - ONLY when explicitly opened */}
       {categoriesOpen && (
         <CategoriesOverlay
           onClose={() => setCategoriesOpen(false)}
@@ -86,7 +137,7 @@ function MainApp() {
             )}
             {activeTab === 'wallet' && <WalletPage />}
             {activeTab === 'downloads' && <DownloadsPage />}
-            {activeTab === 'me' && <ProfilePage />}
+            {activeTab === 'me' && <ProfilePage onTermsClick={handleTermsClick} />}
           </main>
           <BottomNavbar active={activeTab} onChange={setActiveTab} />
         </>
