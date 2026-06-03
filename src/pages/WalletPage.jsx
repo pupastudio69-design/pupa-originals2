@@ -43,7 +43,6 @@ export default function WalletPage() {
       if (walletSnap.exists()) {
         setWallet(walletSnap.data());
       } else {
-        // Create new wallet
         const newWallet = {
           balance: 0,
           points: 0,
@@ -82,7 +81,6 @@ export default function WalletPage() {
 
   const handleTopupSuccess = async (response) => {
     try {
-      // Update wallet balance
       const walletRef = doc(db, 'wallets', user.uid);
       const newBalance = (wallet.balance || 0) + selectedAmount;
 
@@ -91,7 +89,6 @@ export default function WalletPage() {
         lastTopup: serverTimestamp()
       });
 
-      // Record transaction
       await addDoc(collection(db, 'transactions'), {
         userId: user.uid,
         type: 'topup',
