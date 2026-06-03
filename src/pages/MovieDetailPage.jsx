@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, ALL_MOVIES } from '../data/movies.js';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, Gift, Download, 
-  Plus, Check, Star, Clock, Calendar, Users, Copy, X, Play
+  Plus, Check, Star, Clock, Calendar, Users, Copy, X, Play, Send
 } from 'lucide-react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -25,6 +25,7 @@ export default function MovieDetailPage() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   const COIN_PACKAGES = [
     { coins: 100, price: 500, label: '100 Coins' },
@@ -251,22 +252,52 @@ export default function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] pb-20">
-      {/* Video Player */}
+      {/* Poster / Video Area */}
       <div className="relative w-full aspect-video bg-black">
-        <iframe
-          src={movie.videoUrl}
-          className="w-full h-full"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          title={movie.title}
-        />
+        {!showVideo ? (
+          <>
+            <img
+              src={movie.poster}
+              alt={movie.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors border border-white/10"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+            {/* Watch Button Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <button
+                onClick={() => setShowVideo(true)}
+                className="w-20 h-20 rounded-full bg-emerald-500/90 hover:bg-emerald-400 flex items-center justify-center transition-all hover:scale-110 shadow-lg shadow-emerald-500/30"
+              >
+                <Play className="w-8 h-8 text-white fill-white ml-1" />
+              </button>
+            </div>
+
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors border border-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </>
+        ) : (
+          <>
+            <iframe
+              src={movie.videoUrl}
+              className="w-full h-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title={movie.title}
+            />
+            <button
+              onClick={() => setShowVideo(false)}
+              className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors border border-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Movie Info */}
@@ -275,7 +306,7 @@ export default function MovieDetailPage() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">{movie.title}</h1>
-            <div className="flex items-center gap-3 text-sm text-gray-400">
+            <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4 text-emerald-400" />
                 {movie.year}
@@ -323,6 +354,17 @@ export default function MovieDetailPage() {
           <span className="text-gray-600 text-sm">•</span>
           <span className="text-gray-500 text-sm">{movie.views} views</span>
         </div>
+
+        {/* Watch Button */}
+        {!showVideo && (
+          <button
+            onClick={() => setShowVideo(true)}
+            className="w-full py-3 bg-emerald-600 rounded-xl text-white font-bold flex items-center justify-center gap-2 hover:bg-emerald-500 transition-colors mb-4"
+          >
+            <Play className="w-5 h-5 fill-white" />
+            Watch Now
+          </button>
+        )}
 
         {/* Genre Tags */}
         <div className="flex flex-wrap gap-2 mb-4">
@@ -391,9 +433,11 @@ export default function MovieDetailPage() {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700"
+            className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-colors border ${
+              showComments ? 'bg-emerald-600/20 border-emerald-500/30' : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+            }`}
           >
-            <MessageCircle className="w-6 h-6 text-emerald-400" />
+            <MessageCircle className={`w-6 h-6 ${showComments ? 'text-emerald-400' : 'text-emerald-400'}`} />
             <span className="text-[10px] text-gray-400 font-medium">Comments</span>
           </button>
         </div>
@@ -425,7 +469,7 @@ export default function MovieDetailPage() {
                     disabled={!newComment.trim()}
                     className="px-4 py-2 bg-emerald-600 rounded-lg text-white text-sm font-bold disabled:opacity-50 hover:bg-emerald-500 transition-colors"
                   >
-                    Post
+                    <Send className="w-4 h-4" />
                   </button>
                 </div>
               </form>
