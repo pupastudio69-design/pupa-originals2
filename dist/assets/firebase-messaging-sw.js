@@ -2,12 +2,12 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: "AIzaSyC...",
+  apiKey: "AIzaSyB2JLL58U7ZEKEx4GiDdCWTFNrLg3F-Of8",
   authDomain: "pupa-originals-new.firebaseapp.com",
   projectId: "pupa-originals-new",
-  storageBucket: "pupa-originals-new.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  storageBucket: "pupa-originals-new.firebasestorage.app",
+  messagingSenderId: "981860483022",
+  appId: "1:981860483022:web:eb4dfc8f5378e61890b59f"
 });
 
 const messaging = firebase.messaging();
