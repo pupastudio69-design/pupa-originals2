@@ -31,9 +31,7 @@ function MainApp() {
   };
 
   const handleCategorySelect = (category) => {
-    // You can filter movies by category here
     console.log('Selected category:', category);
-    // Optionally show a toast or filter the home page
   };
 
   return (
