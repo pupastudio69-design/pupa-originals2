@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signOut, onAuthStateChanged, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../firebase';
+import { signOut, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, storage } from '../firebase';
 import {
   User, Settings, Crown, Bell, Shield, ChevronRight,
-  LogOut, Star, Zap, Globe, Mail, CheckCircle, X
+  LogOut, Star, Zap, Globe, Mail, CheckCircle, X, Camera, FileText
 } from 'lucide-react';
 
 // Settings Overlay Component
@@ -221,21 +222,46 @@ function PrivacyOverlay({ onClose }) {
   );
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ onTermsClick }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState(null);
   const [region, setRegion] = useState('NG');
   const [verificationSent, setVerificationSent] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      if (user?.photoURL) {
+        setProfileImage(user.photoURL);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUser) return;
+
+    setUploadingImage(true);
+    try {
+      const storageRef = ref(storage, `profileImages/${currentUser.uid}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await updateProfile(currentUser, { photoURL: downloadURL });
+      setProfileImage(downloadURL);
+    } catch (err) {
+      console.error('Image upload error:', err);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -314,6 +340,13 @@ export default function ProfilePage() {
       color: '#94a3b8',
       onClick: () => setActiveOverlay('settings')
     },
+    { 
+      icon: FileText, 
+      label: 'Terms & Conditions', 
+      sub: 'Legal information', 
+      color: '#f59e0b',
+      onClick: () => onTermsClick?.()
+    },
   ];
 
   if (loading) {
@@ -344,19 +377,45 @@ export default function ProfilePage() {
           <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-emerald-500/5" />
 
           <div className="flex items-center gap-4">
+            {/* Avatar with image upload */}
             <div className="relative">
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center font-display font-bold text-3xl text-white"
-                style={{
-                  background: 'linear-gradient(135deg, #16a34a, #064e2a)',
-                  border: '3px solid rgba(22,163,74,0.4)',
-                  boxShadow: '0 0 20px rgba(22,163,74,0.2)',
-                }}
-              >
-                {getAvatarLetter()}
-              </div>
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-20 h-20 rounded-full object-cover"
+                  style={{
+                    border: '3px solid rgba(22,163,74,0.4)',
+                    boxShadow: '0 0 20px rgba(22,163,74,0.2)',
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center font-display font-bold text-3xl text-white"
+                  style={{
+                    background: 'linear-gradient(135deg, #16a34a, #064e2a)',
+                    border: '3px solid rgba(22,163,74,0.4)',
+                    boxShadow: '0 0 20px rgba(22,163,74,0.2)',
+                  }}
+                >
+                  {getAvatarLetter()}
+                </div>
+              )}
+
+              {/* Camera button for upload */}
+              <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors">
+                <Camera size={14} className="text-white" />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+              </label>
+
               {isEmailVerified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
                   <Star size={12} className="text-white fill-white" />
                 </div>
               )}

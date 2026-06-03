@@ -32,7 +32,9 @@ export default function HeroBanner({ onMovieSelect }) {
     return [];
   };
 
-  const genres = getGenres(movie.genre);
+  const genres = getGenres(movie?.genre);
+
+  if (!movie) return null;
 
   return (
     <div className="relative w-full" style={{ height: '85vh', minHeight: 520 }}>
@@ -90,7 +92,7 @@ export default function HeroBanner({ onMovieSelect }) {
         </p>
 
         {/* Meta */}
-        <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <div className="flex items-center gap-1">
             <Star size={12} className="text-yellow-400 fill-yellow-400" />
             <span className="text-yellow-400 text-xs font-mono font-medium">{movie.rating}</span>

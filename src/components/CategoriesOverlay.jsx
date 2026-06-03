@@ -19,6 +19,7 @@ export default function CategoriesOverlay({ onClose, onCategorySelect }) {
       className="fixed inset-0 z-[100] flex flex-col"
       style={{ background: 'rgba(4,27,17,0.97)', backdropFilter: 'blur(24px)' }}
     >
+      {/* Header */}
       <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
         <h2 className="text-white text-lg font-display font-semibold">Browse Categories</h2>
         <button onClick={onClose}>
@@ -26,6 +27,7 @@ export default function CategoriesOverlay({ onClose, onCategorySelect }) {
         </button>
       </div>
 
+      {/* Categories Grid */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="grid grid-cols-2 gap-3">
           {CATEGORIES.map((cat) => {
