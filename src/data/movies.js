@@ -1,5 +1,4 @@
 // Real African movies with WORKING YouTube embed URLs
-// All videos are full-length Nollywood movies available on YouTube
 
 export const TRENDING = [
   {
@@ -360,6 +359,20 @@ export const HERO_MOVIES = [
   TRENDING[3],   // Queen of Benin
   NEW_RELEASES[0], // Love and Destiny
   AFRICAN_HITS[3], // Loving Aduke
+];
+
+// TOP 10 - for Top10Row component
+export const TOP_10 = [
+  TRENDING[0],   // 1. Beast of a Nation
+  NEW_RELEASES[0], // 2. Love and Destiny
+  TRENDING[2],   // 3. Blood of the Sahara
+  AFRICAN_HITS[3], // 4. Loving Aduke
+  TRENDING[3],   // 5. Queen of Benin
+  NEW_RELEASES[3], // 6. Without You
+  AFRICAN_HITS[4], // 7. Ejiro and Tega
+  TRENDING[4],   // 8. Lagos Nights
+  NEW_RELEASES[1], // 9. Love in Ghetto
+  TRENDING[5],   // 10. The Last King
 ];
 
 // All movies combined for search
