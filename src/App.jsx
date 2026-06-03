@@ -37,7 +37,9 @@ function MainApp() {
     if (messaging && 'Notification' in window) {
       Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
-          getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' })
+          getToken(messaging, { 
+            vapidKey: 'BBuCrYyn4gFgcFJUgdX7SYq1OID0UxJehqa4NRk47etntA4-oQOHIdpu0QDptCqum7jLLu5Tvqqdl3nEPXiR-Y0' 
+          })
             .then((token) => {
               console.log('Push notification token:', token);
               // Save token to Firestore for this user
