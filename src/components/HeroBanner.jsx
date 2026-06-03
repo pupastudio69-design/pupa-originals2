@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Info, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { HERO_MOVIES } from '../data/movies';
+import { HERO_MOVIES } from '../data/movies.js';
 
 export default function HeroBanner({ onMovieSelect }) {
   const [current, setCurrent] = useState(0);
@@ -25,7 +25,6 @@ export default function HeroBanner({ onMovieSelect }) {
 
   const movie = HERO_MOVIES[current];
 
-  // Helper: handle genre as string or array
   const getGenres = (genre) => {
     if (Array.isArray(genre)) return genre;
     if (typeof genre === 'string') return [genre];
@@ -33,6 +32,9 @@ export default function HeroBanner({ onMovieSelect }) {
   };
 
   const genres = getGenres(movie?.genre);
+
+  // Use poster as backdrop fallback since new data doesn't have backdrop
+  const backdropUrl = movie?.backdrop || movie?.poster;
 
   if (!movie) return null;
 
@@ -46,7 +48,7 @@ export default function HeroBanner({ onMovieSelect }) {
           style={{ opacity: i === current ? 1 : 0 }}
         >
           <img
-            src={m.backdrop}
+            src={m.backdrop || m.poster}
             alt={m.title}
             className="w-full h-full object-cover"
           />
@@ -68,7 +70,7 @@ export default function HeroBanner({ onMovieSelect }) {
         }}
       >
         {/* Pupa Badge */}
-        {movie.isPupa && (
+        {movie.isPupaOriginal && (
           <div className="flex items-center gap-2 mb-3">
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30">
               <span className="text-yellow-400 text-[10px] font-mono font-medium tracking-widest uppercase">
@@ -80,15 +82,15 @@ export default function HeroBanner({ onMovieSelect }) {
 
         {/* Title */}
         <h1
-          className="font-display font-semibold leading-none mb-2"
+          className="font-display font-semibold leading-none mb-2 text-white"
           style={{ fontSize: 'clamp(32px, 8vw, 56px)' }}
         >
           {movie.title}
         </h1>
 
-        {/* Tagline */}
+        {/* Tagline - fallback to description if no tagline */}
         <p className="font-body text-sm text-emerald-300/80 italic mb-3 font-light">
-          {movie.tagline}
+          {movie.tagline || movie.description?.substring(0, 60) + '...'}
         </p>
 
         {/* Meta */}

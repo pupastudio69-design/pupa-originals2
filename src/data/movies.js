@@ -960,3 +960,10 @@ export const CATEGORIES = [
   { id: 'romance', name: 'Romance', icon: '❤️', image: 'https://images.unsplash.com/photo-1594909122849-11e29194f11c?w=300&h=200&fit=crop' },
   { id: 'thriller', name: 'Thriller', icon: '🔪', image: 'https://images.unsplash.com/photo-1535016120720-40c6874c3b13?w=300&h=200&fit=crop' }
 ];
+
+
+// Backward compatibility exports for old components
+export const HERO_MOVIES = ALL_MOVIES.slice(0, 5);
+export const PUPA_ORIGINALS = ALL_MOVIES.filter(m => m.isPupaOriginal);
+export const NEW_RELEASES = ALL_MOVIES.slice().sort((a, b) => b.year - a.year).slice(0, 10);
+export const AFRICAN_HITS = ALL_MOVIES.filter(m => m.genre?.some(g => ['Drama', 'Action'].includes(g))).slice(0, 10);
