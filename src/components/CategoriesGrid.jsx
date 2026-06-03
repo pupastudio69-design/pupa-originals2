@@ -1,61 +1,65 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
-import { CATEGORIES } from '../data/movies';
+import { X, Film, Heart, Laugh, Drama, Ghost, Music, Globe, Clapperboard, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function CategoriesGrid() {
+const CATEGORIES = [
+  { id: 'action', name: 'Action', icon: Clapperboard, color: '#ef4444', count: 148 },
+  { id: 'nollywood', name: 'Nollywood', icon: Film, color: '#16a34a', count: 324 },
+  { id: 'romance', name: 'Romance', icon: Heart, color: '#ec4899', count: 210 },
+  { id: 'drama', name: 'Drama', icon: Drama, color: '#8b5cf6', count: 276 },
+  { id: 'comedy', name: 'Comedy', icon: Laugh, color: '#f59e0b', count: 192 },
+  { id: 'horror', name: 'Horror', icon: Ghost, color: '#dc2626', count: 89 },
+  { id: 'musical', name: 'Musical', icon: Music, color: '#06b6d4', count: 67 },
+  { id: 'documentary', name: 'Documentary', icon: Globe, color: '#10b981', count: 155 },
+  { id: 'premium', name: 'Pupa Originals', icon: Sparkles, color: '#facc15', count: 45 },
+];
+
+export default function CategoriesOverlay({ onClose, onCategorySelect }) {
+  const navigate = useNavigate();
+
   return (
-    <section className="mb-8 px-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-body font-semibold text-white text-base">Browse Categories</h2>
-        <button className="flex items-center gap-0.5 text-emerald-500 text-xs hover:text-yellow-400 transition-colors">
-          All <ChevronRight size={14} />
+    <div
+      className="fixed inset-0 z-[100] flex flex-col"
+      style={{ background: 'rgba(4,27,17,0.97)', backdropFilter: 'blur(24px)' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
+        <h2 className="text-white text-lg font-display font-semibold">Browse Categories</h2>
+        <button onClick={onClose}>
+          <X size={24} className="text-gray-400 hover:text-white" />
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {CATEGORIES.map((cat) => (
-          <div
-            key={cat.id}
-            className="category-card relative cursor-pointer"
-            style={{ aspectRatio: '16/9' }}
-          >
-            {/* Background image */}
-            <img
-              src={cat.image}
-              alt={cat.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-
-            {/* Overlay */}
-            <div
-              className="category-overlay absolute inset-0 transition-all duration-300"
-              style={{
-                background: 'linear-gradient(135deg, rgba(4,27,17,0.75) 0%, rgba(0,0,0,0.5) 100%)',
-              }}
-            />
-
-            {/* Emerald accent border */}
-            <div
-              className="absolute inset-0 rounded-xl transition-opacity duration-300"
-              style={{
-                boxShadow: 'inset 0 0 0 1px rgba(22, 163, 74, 0.3)',
-                opacity: 0,
-              }}
-            />
-
-            {/* Text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="font-display font-semibold text-white text-sm tracking-wide">
-                {cat.name}
-              </p>
-              <p className="font-mono text-emerald-400/70 text-[10px] mt-0.5">
-                {cat.count} titles
-              </p>
-            </div>
-          </div>
-        ))}
+      {/* Categories Grid */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="grid grid-cols-2 gap-3">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  onCategorySelect?.(cat);
+                  onClose();
+                }}
+                className="relative rounded-xl p-4 text-left overflow-hidden group transition-transform active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                <div
+                  className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10"
+                  style={{ background: cat.color, transform: 'translate(30%, -30%)' }}
+                />
+                <Icon size={24} style={{ color: cat.color }} className="mb-3" />
+                <p className="text-white text-sm font-body font-medium">{cat.name}</p>
+                <p className="text-gray-500 text-xs">{cat.count} titles</p>
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
