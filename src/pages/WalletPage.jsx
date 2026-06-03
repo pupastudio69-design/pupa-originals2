@@ -1,12 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase';
-import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { auth, db } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
 import { 
-  Wallet, CreditCard, ArrowUpRight, ArrowDownRight, Gift, Copy, Check, 
-  TrendingUp, Shield, Zap, Globe, ChevronDown, X, Crown, Star 
+  Wallet, CreditCard, ArrowUpRight, Gift, Copy, Check, 
+  X, Crown, Star, Loader2
 } from 'lucide-react';
-import PaystackPayment from '../components/PaystackPayment';
+
+// Inline AuthContext in case the external one fails
+const InlineAuthContext = createContext(null);
+
+function useInlineAuth() {
+  const context = useContext(InlineAuthContext);
+  if (!context) {
+    // Fallback: get user directly from Firebase auth state
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const unsub = onAuthStateChanged(auth, (u) => {
+        setUser(u);
+        setLoading(false);
+      });
+      return unsub;
+    }, []);
+
+    return { user, loading, signup: null, login: null, logout: null };
+  }
+  return context;
+}
+
+// Try to import external AuthContext, fallback to inline if it fails
+let useAuth;
+try {
+  const authModule = require('../contexts/AuthContext');
+  useAuth = authModule.useAuth || useInlineAuth;
+} catch (e) {
+  useAuth = useInlineAuth;
+}
 
 const SUBSCRIPTION_PLANS = {
   monthly: { name: 'Monthly', price: 1500, period: 'month', features: ['HD Streaming', 'No Ads', 'Download Movies'] },
@@ -17,7 +48,15 @@ const SUBSCRIPTION_PLANS = {
 const TOPUP_AMOUNTS = [500, 1000, 2000, 5000, 10000];
 
 export default function WalletPage() {
-  const { user } = useAuth();
+  // Get auth data safely
+  let authData;
+  try {
+    authData = useAuth();
+  } catch (e) {
+    authData = { user: null, loading: false };
+  }
+
+  const { user } = authData || { user: null };
   const [wallet, setWallet] = useState({ balance: 0, points: 0, referralCode: '', referrals: 0 });
   const [transactions, setTransactions] = useState([]);
   const [showTopup, setShowTopup] = useState(false);
@@ -26,17 +65,22 @@ export default function WalletPage() {
   const [selectedPlan, setSelectedPlan] = useState('quarterly');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.uid) {
       loadWallet();
       loadTransactions();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   const loadWallet = async () => {
     try {
+      setLoading(true);
+      setError('');
       const walletRef = doc(db, 'wallets', user.uid);
       const walletSnap = await getDoc(walletRef);
 
@@ -46,16 +90,19 @@ export default function WalletPage() {
         const newWallet = {
           balance: 0,
           points: 0,
-          referralCode: generateReferralCode(),
+          referralCode: 'PUPA' + Math.random().toString(36).substring(2, 8).toUpperCase(),
           referrals: 0,
           subscription: null,
           createdAt: serverTimestamp()
         };
-        await updateDoc(walletRef, newWallet);
+        await setDoc(walletRef, newWallet);
         setWallet(newWallet);
       }
-    } catch (error) {
-      console.error('Error loading wallet:', error);
+    } catch (err) {
+      console.error('Error loading wallet:', err);
+      setError('Failed to load wallet. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,21 +115,17 @@ export default function WalletPage() {
       );
       const snapshot = await getDocs(q);
       setTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (error) {
-      console.error('Error loading transactions:', error);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Error loading transactions:', err);
+      setTransactions([]);
     }
-  };
-
-  const generateReferralCode = () => {
-    return 'PUPA' + Math.random().toString(36).substring(2, 8).toUpperCase();
   };
 
   const handleTopupSuccess = async (response) => {
     try {
       const walletRef = doc(db, 'wallets', user.uid);
-      const newBalance = (wallet.balance || 0) + selectedAmount;
+      const currentBalance = wallet.balance || 0;
+      const newBalance = currentBalance + selectedAmount;
 
       await updateDoc(walletRef, {
         balance: newBalance,
@@ -93,7 +136,7 @@ export default function WalletPage() {
         userId: user.uid,
         type: 'topup',
         amount: selectedAmount,
-        reference: response.reference,
+        reference: response?.reference || 'manual_' + Date.now(),
         status: 'success',
         paymentMethod: 'paystack',
         createdAt: serverTimestamp()
@@ -105,8 +148,9 @@ export default function WalletPage() {
       loadTransactions();
 
       setTimeout(() => setPaymentSuccess(null), 5000);
-    } catch (error) {
-      console.error('Error processing topup:', error);
+    } catch (err) {
+      console.error('Error processing topup:', err);
+      setError('Payment succeeded but failed to update wallet. Contact support.');
     }
   };
 
@@ -134,7 +178,7 @@ export default function WalletPage() {
         userId: user.uid,
         type: 'subscription',
         amount: plan.price,
-        reference: response.reference,
+        reference: response?.reference || 'manual_' + Date.now(),
         status: 'success',
         plan: selectedPlan,
         createdAt: serverTimestamp()
@@ -149,27 +193,41 @@ export default function WalletPage() {
       loadTransactions();
 
       setTimeout(() => setPaymentSuccess(null), 5000);
-    } catch (error) {
-      console.error('Error processing subscription:', error);
+    } catch (err) {
+      console.error('Error processing subscription:', err);
+      setError('Payment succeeded but failed to activate subscription. Contact support.');
     }
   };
 
   const copyReferralLink = () => {
-    const link = `https://pupaoriginals.com/signup?ref=${wallet.referralCode}`;
+    const code = wallet.referralCode || 'PUPA000000';
+    const link = `https://pupaoriginals.com/signup?ref=${code}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isSubscribed = wallet.subscription && wallet.subscription.status === 'active';
-  const subscriptionDaysLeft = isSubscribed 
+  const isSubscribed = wallet?.subscription && wallet.subscription.status === 'active';
+  const subscriptionDaysLeft = isSubscribed && wallet.subscription.expiresAt 
     ? Math.ceil((wallet.subscription.expiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center p-4">
+        <div className="text-center">
+          <Wallet className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+          <h2 className="text-white text-xl font-semibold mb-2">Sign In Required</h2>
+          <p className="text-gray-400 text-sm">Please sign in to access your wallet</p>
+        </div>
       </div>
     );
   }
@@ -183,9 +241,22 @@ export default function WalletPage() {
       </div>
 
       <div className="px-4 space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+            <p className="text-red-400 text-sm">{error}</p>
+            <button 
+              onClick={() => { setError(''); loadWallet(); }}
+              className="text-red-400 text-xs underline mt-2"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Success Message */}
         {paymentSuccess && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 animate-fade-in">
+          <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
                 <Check className="w-4 h-4 text-green-400" />
@@ -196,7 +267,6 @@ export default function WalletPage() {
                     ? `₦${paymentSuccess.amount.toLocaleString()} added to wallet!` 
                     : `${paymentSuccess.plan} subscription activated!`}
                 </p>
-                <p className="text-green-400/60 text-xs">Payment successful</p>
               </div>
             </div>
           </div>
@@ -209,7 +279,7 @@ export default function WalletPage() {
 
           <div className="relative z-10">
             <p className="text-white/70 text-sm mb-1">Available Balance</p>
-            <h2 className="text-4xl font-bold text-white mb-4">₦{(wallet.balance || 0).toLocaleString()}</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">₦{(wallet?.balance || 0).toLocaleString()}</h2>
 
             <div className="flex gap-3">
               <button 
@@ -243,7 +313,7 @@ export default function WalletPage() {
                 </div>
                 <div>
                   <p className="text-white font-semibold text-sm">Premium Active</p>
-                  <p className="text-gray-400 text-xs">{SUBSCRIPTION_PLANS[wallet.subscription.plan]?.name} Plan</p>
+                  <p className="text-gray-400 text-xs">{SUBSCRIPTION_PLANS[wallet.subscription.plan]?.name || 'Premium'} Plan</p>
                 </div>
               </div>
               <div className="text-right">
@@ -261,7 +331,7 @@ export default function WalletPage() {
               <Star className="w-4 h-4 text-yellow-400" />
               <span className="text-gray-400 text-xs">Points</span>
             </div>
-            <p className="text-white font-bold text-xl">{(wallet.points || 0).toLocaleString()}</p>
+            <p className="text-white font-bold text-xl">{(wallet?.points || 0).toLocaleString()}</p>
           </div>
 
           <div className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5">
@@ -269,7 +339,7 @@ export default function WalletPage() {
               <Gift className="w-4 h-4 text-purple-400" />
               <span className="text-gray-400 text-xs">Referrals</span>
             </div>
-            <p className="text-white font-bold text-xl">{wallet.referrals || 0}</p>
+            <p className="text-white font-bold text-xl">{wallet?.referrals || 0}</p>
           </div>
         </div>
 
@@ -280,7 +350,7 @@ export default function WalletPage() {
 
           <div className="flex gap-2">
             <div className="flex-1 bg-black/30 rounded-lg px-3 py-2 text-gray-400 text-xs truncate">
-              pupaoriginals.com/signup?ref={wallet.referralCode}
+              pupaoriginals.com/signup?ref={wallet?.referralCode || 'PUPA000000'}
             </div>
             <button 
               onClick={copyReferralLink}
@@ -313,7 +383,9 @@ export default function WalletPage() {
                     </div>
                     <div>
                       <p className="text-white text-sm font-medium capitalize">{tx.type}</p>
-                      <p className="text-gray-500 text-xs">{tx.createdAt?.toDate?.().toLocaleDateString() || 'Just now'}</p>
+                      <p className="text-gray-500 text-xs">
+                        {tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -367,13 +439,10 @@ export default function WalletPage() {
                 />
               </div>
 
-              <PaystackPayment
-                email={user?.email}
-                amount={selectedAmount}
-                type="topup"
-                onSuccess={handleTopupSuccess}
-                onClose={() => setShowTopup(false)}
-              />
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                <p className="text-yellow-400 text-sm font-semibold mb-1">Paystack Coming Soon</p>
+                <p className="text-gray-400 text-xs">Payment integration will be added shortly. For now, this is a preview.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -422,14 +491,10 @@ export default function WalletPage() {
                 ))}
               </div>
 
-              <PaystackPayment
-                email={user?.email}
-                amount={SUBSCRIPTION_PLANS[selectedPlan].price}
-                type="subscription"
-                plan={selectedPlan}
-                onSuccess={handleSubscriptionSuccess}
-                onClose={() => setShowSubscribe(false)}
-              />
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                <p className="text-yellow-400 text-sm font-semibold mb-1">Paystack Coming Soon</p>
+                <p className="text-gray-400 text-xs">Payment integration will be added shortly. For now, this is a preview.</p>
+              </div>
             </div>
           </div>
         </div>
