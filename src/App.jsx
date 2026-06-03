@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import SplashScreen from './components/SplashScreen';
@@ -21,11 +21,12 @@ function MainApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
 
-  // Debug log
-  console.log('Render state:', { activeTab, selectedMovie: selectedMovie?.title, searchOpen, categoriesOpen });
+  // Debug: log state changes
+  useEffect(() => {
+    console.log('categoriesOpen changed:', categoriesOpen);
+  }, [categoriesOpen]);
 
   const handleMovieSelect = (movie) => {
-    console.log('Movie selected:', movie.title);
     setSelectedMovie(movie);
   };
 
@@ -34,7 +35,7 @@ function MainApp() {
   };
 
   const handleCategoriesOpen = () => {
-    console.log('Opening categories overlay');
+    console.log('Opening categories from button click');
     setCategoriesOpen(true);
   };
 
@@ -44,6 +45,7 @@ function MainApp() {
 
   return (
     <div className="relative min-h-screen bg-pupa-bg noise">
+      {/* Search Overlay */}
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -51,6 +53,7 @@ function MainApp() {
         />
       )}
 
+      {/* Categories Overlay - ONLY when explicitly opened */}
       {categoriesOpen && (
         <CategoriesOverlay
           onClose={() => setCategoriesOpen(false)}
@@ -58,6 +61,7 @@ function MainApp() {
         />
       )}
 
+      {/* Movie Detail View */}
       {selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
@@ -69,6 +73,7 @@ function MainApp() {
         </>
       )}
 
+      {/* Main Tab Views */}
       {!selectedMovie && !searchOpen && !categoriesOpen && (
         <>
           <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
