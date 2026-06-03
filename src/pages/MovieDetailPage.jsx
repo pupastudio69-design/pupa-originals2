@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMovieById, ALL_MOVIES } from '../movies';
+import { getMovieById, ALL_MOVIES } from '../movies.js';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, Gift, Download, 
   Plus, Check, Play, Star, Clock, Calendar, Users, Copy, X
@@ -79,7 +79,6 @@ export default function MovieDetailPage() {
       return;
     }
     setIsLiked(!isLiked);
-    // Save to Firestore
     try {
       const likesRef = doc(db, 'likes', user.uid);
       const likesSnap = await getDoc(likesRef);

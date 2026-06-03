@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS, HERO_MOVIES, TOP_10 } from '../movies';
+import { TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS, HERO_MOVIES, TOP_10 } from '../movies.js';
 import { ChevronRight, Play } from 'lucide-react';
 
 const SECTIONS = [
