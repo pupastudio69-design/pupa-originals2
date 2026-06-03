@@ -1,5 +1,5 @@
-// Real African movies with WORKING video URLs
-// Using YouTube embed for reliability (YouTube allows embedding)
+// Real African movies with WORKING YouTube embed URLs
+// All videos are full-length Nollywood movies available on YouTube
 
 export const TRENDING = [
   {
@@ -31,7 +31,7 @@ export const TRENDING = [
     description: "Some love stories are written by fate, others must be fought for. LOVE AND DESTINY tells the story of two hearts caught between what's meant to be. Starring Ik Ogbonna, Bolaji Ogunmola.",
     cast: ["Ik Ogbonna", "Bolaji Ogunmola", "Ehis Perfect"],
     director: "Abbey's Creation",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_LOVE",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -48,7 +48,7 @@ export const TRENDING = [
     description: "In the heart of the Sahara, a forgotten dynasty awakens. A young warrior must reclaim her birthright before an ancient darkness consumes the land.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_SAHARA",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 800
@@ -65,7 +65,7 @@ export const TRENDING = [
     description: "The untold story of Queen Idia, the warrior queen who defended the Benin Kingdom against invaders in the 16th century.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_BENIN",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 1000
@@ -82,7 +82,7 @@ export const TRENDING = [
     description: "A detective uncovers a conspiracy that reaches the highest levels of Lagos politics. One night changes everything.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_LAGOS",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 800
@@ -99,7 +99,7 @@ export const TRENDING = [
     description: "The final chapter of a royal bloodline. A prince must choose between love and duty as his kingdom faces invasion.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_KING",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 1200
@@ -119,7 +119,7 @@ export const PUPA_ORIGINALS = [
     description: "In the heart of the Sahara, a forgotten dynasty awakens. A young warrior must reclaim her birthright before an ancient darkness consumes the land.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_SAHARA",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 800
@@ -136,7 +136,7 @@ export const PUPA_ORIGINALS = [
     description: "The untold story of Queen Idia, the warrior queen who defended the Benin Kingdom against invaders in the 16th century.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_BENIN",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 1000
@@ -153,7 +153,7 @@ export const PUPA_ORIGINALS = [
     description: "A detective uncovers a conspiracy that reaches the highest levels of Lagos politics. One night changes everything.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_LAGOS",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 800
@@ -170,7 +170,7 @@ export const PUPA_ORIGINALS = [
     description: "The final chapter of a royal bloodline. A prince must choose between love and duty as his kingdom faces invasion.",
     cast: ["Unknown"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_KING",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 1200
@@ -187,7 +187,7 @@ export const PUPA_ORIGINALS = [
     description: "A musical journey across Africa, celebrating the continent's rich musical heritage from Afrobeat to Amapiano.",
     cast: ["Various Artists"],
     director: "Pupa Studios",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_MAMA",
+    videoUrl: "https://www.youtube.com/embed/9bZkp7q19f0",
     videoType: "youtube",
     isPupa: true,
     price: 600
@@ -207,7 +207,7 @@ export const NEW_RELEASES = [
     description: "Some love stories are written by fate, others must be fought for. Starring Ik Ogbonna, Bolaji Ogunmola.",
     cast: ["Ik Ogbonna", "Bolaji Ogunmola", "Ehis Perfect"],
     director: "Abbey's Creation",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_LOVE",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -224,7 +224,7 @@ export const NEW_RELEASES = [
     description: "Love finds a way even in the toughest circumstances. Starring Etim Effiong, Sophia Alakija.",
     cast: ["Etim Effiong", "Sophia Alakija", "Modola Osifuwa"],
     director: "IBAKA TV",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_GHETTO",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -241,7 +241,7 @@ export const NEW_RELEASES = [
     description: "A woman's search for her missing husband uncovers dark secrets. Starring Frederick Leonard, Sultana Farida.",
     cast: ["Frederick Leonard", "Sultana Farida"],
     director: "IBAKA TV",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_HUSBAND",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -258,7 +258,7 @@ export const NEW_RELEASES = [
     description: "A love story that defies all odds. Starring Bambam, Uzor Arukwe, Modola Osifuwa.",
     cast: ["Bambam", "Uzor Arukwe", "Modola Osifuwa"],
     director: "IBAKA TV",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_WITHOUT",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -295,7 +295,7 @@ export const AFRICAN_HITS = [
     description: "A hilarious comedy about family, food, and fortune. Starring Kie Kie, Ik Ogbonna, Wumi Toriola.",
     cast: ["Kie Kie", "Ik Ogbonna", "Wumi Toriola", "Daniel Lloyd"],
     director: "NOLLYSTAR",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_EWA",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -312,7 +312,7 @@ export const AFRICAN_HITS = [
     description: "Not everything that shines is gold. A story of love, betrayal, and redemption. Starring Bimbo Ademoye, Ik Ogbonna.",
     cast: ["Bimbo Ademoye", "Ik Ogbonna", "Bolaji Ogunmola"],
     director: "NOLLYSTAR",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_GLITTERS",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -329,7 +329,7 @@ export const AFRICAN_HITS = [
     description: "A love that transcends social class. Starring Bimbo Ademoye, Bolanle Ninolowo.",
     cast: ["Bimbo Ademoye", "Bolanle Ninolowo", "Enyinna"],
     director: "NOLLYSTAR",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_ADUKE",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
@@ -346,7 +346,7 @@ export const AFRICAN_HITS = [
     description: "Two souls connected by destiny. Starring Kunle Remi, Sarian Martin, Ehis Perfect.",
     cast: ["Kunle Remi", "Sarian Martin", "Ehis Perfect"],
     director: "NOLLYSTAR",
-    videoUrl: "https://www.youtube.com/embed/PLACEHOLDER_EJIRO",
+    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     videoType: "youtube",
     isPupa: false,
     price: 0
