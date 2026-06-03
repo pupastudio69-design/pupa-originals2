@@ -231,6 +231,7 @@ export default function ProfilePage({ onTermsClick }) {
   const [verificationSent, setVerificationSent] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -245,19 +246,35 @@ export default function ProfilePage({ onTermsClick }) {
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !currentUser) return;
+    if (!file || !currentUser) {
+      setUploadError('No file selected or not logged in');
+      return;
+    }
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select an image file (JPG, PNG, etc.)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image too large. Max 5MB');
+      return;
+    }
 
     setUploadingImage(true);
+    setUploadError(null);
+
     try {
-      const storageRef = ref(storage, `profileImages/${currentUser.uid}`);
+      const storageRef = ref(storage, `profileImages/${currentUser.uid}/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
       await updateProfile(currentUser, { photoURL: downloadURL });
       setProfileImage(downloadURL);
+      setUploadError(null);
     } catch (err) {
       console.error('Image upload error:', err);
-      alert('Failed to upload image. Please try again.');
+      setUploadError(err.message || 'Failed to upload image. Check Firebase Storage rules.');
     } finally {
       setUploadingImage(false);
     }
@@ -403,7 +420,7 @@ export default function ProfilePage({ onTermsClick }) {
               )}
 
               {/* Camera button for upload */}
-              <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors">
+              <label className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors ${uploadingImage ? 'opacity-50' : ''}`}>
                 <Camera size={14} className="text-white" />
                 <input 
                   type="file" 
@@ -462,6 +479,13 @@ export default function ProfilePage({ onTermsClick }) {
             ))}
           </div>
         </div>
+
+        {/* Upload error message */}
+        {uploadError && (
+          <div className="rounded-xl p-3 mb-4 bg-red-500/10 border border-red-500/20">
+            <p className="text-red-400 text-xs">{uploadError}</p>
+          </div>
+        )}
 
         {/* Email verification banner */}
         {!isEmailVerified && currentUser && (

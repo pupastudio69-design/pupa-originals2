@@ -126,7 +126,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
       <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} onMovieSelect={onMovieSelect} badge="gold" size="lg" />
       <ContentRow title="New Releases" movies={NEW_RELEASES} onMovieSelect={onMovieSelect} badge="new" />
 
-      {/* Categories Section - ONLY opens when clicking the "See all" button */}
+      {/* Categories Section - Grid is display only, "See all" opens overlay */}
       <section className="mb-8 px-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-body font-semibold text-white text-base">Categories</h2>
@@ -136,7 +136,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
               console.log('See all categories clicked');
               onCategoriesOpen();
             }}
-            className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors"
+            className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors px-2 py-1"
           >
             See all
           </button>

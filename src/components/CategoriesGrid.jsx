@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-  Clapperboard, Film, Heart, Laugh, Drama, Ghost, Music, Globe, Sparkles
-} from 'lucide-react';
+import { Clapperboard, Film, Heart, Laugh, Drama, Ghost, Music, Globe, Sparkles } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 1, name: "Action", image: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=400&q=80", count: 148 },
@@ -14,13 +12,14 @@ const CATEGORIES = [
   { id: 8, name: "Thriller", image: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=400&q=80", count: 155 },
 ];
 
-export default function CategoriesGrid() {
+export default function CategoriesGrid({ onCategoryClick }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {CATEGORIES.map((cat) => (
         <div
           key={cat.id}
-          className="relative rounded-xl overflow-hidden group cursor-pointer"
+          onClick={() => onCategoryClick?.(cat)}
+          className="relative rounded-xl overflow-hidden group cursor-pointer active:scale-95 transition-transform"
           style={{ aspectRatio: '16/10' }}
         >
           <img
