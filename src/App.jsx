@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { auth, app } from './firebase';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -25,13 +25,23 @@ try {
   console.log('Firebase Messaging not available:', err);
 }
 
-function MainApp() {
+function MainLayout() {
   const [activeTab, setActiveTab] = useState('home');
-  const [selectedMovie, setSelectedMovie] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Sync active tab with URL
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path === '/home') setActiveTab('home');
+    else if (path === '/wallet') setActiveTab('wallet');
+    else if (path === '/downloads') setActiveTab('downloads');
+    else if (path === '/me') setActiveTab('me');
+  }, [location.pathname]);
 
   // Request push notification permission
   useEffect(() => {
@@ -60,20 +70,18 @@ function MainApp() {
     }
   }, []);
 
-  const handleMovieSelect = (movie) => {
-    setSelectedMovie(movie);
-  };
-
-  const handleBack = () => {
-    setSelectedMovie(null);
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    switch (tab) {
+      case 'home': navigate('/'); break;
+      case 'wallet': navigate('/wallet'); break;
+      case 'downloads': navigate('/downloads'); break;
+      case 'me': navigate('/me'); break;
+    }
   };
 
   const handleCategoriesOpen = () => {
     setCategoriesOpen(true);
-  };
-
-  const handleCategorySelect = (category) => {
-    console.log('Category selected:', category);
   };
 
   const handleTermsClick = () => {
@@ -84,12 +92,15 @@ function MainApp() {
     setShowTerms(false);
   };
 
+  // Don't show navbar on movie detail pages
+  const isMoviePage = location.pathname.startsWith('/movie/');
+
   if (showTerms) {
     return (
       <div className="relative min-h-screen bg-pupa-bg">
         <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
         <TermsPage onBack={handleTermsBack} />
-        <BottomNavbar active={activeTab} onChange={setActiveTab} />
+        <BottomNavbar active={activeTab} onChange={handleTabChange} />
       </div>
     );
   }
@@ -99,45 +110,37 @@ function MainApp() {
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
-          onMovieSelect={(m) => { setSelectedMovie(m); setSearchOpen(false); }}
+          onMovieSelect={(m) => { 
+            setSearchOpen(false); 
+            navigate(`/movie/${m.id}`);
+          }}
         />
       )}
 
       {categoriesOpen && (
         <CategoriesOverlay
           onClose={() => setCategoriesOpen(false)}
-          onCategorySelect={handleCategorySelect}
+          onCategorySelect={(cat) => {
+            setCategoriesOpen(false);
+            navigate(`/category/${cat.id}`);
+          }}
         />
       )}
 
-      {selectedMovie && !searchOpen && !categoriesOpen && (
-        <>
-          <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
-          <MovieDetailPage movie={selectedMovie} onBack={handleBack} />
-          <BottomNavbar active={activeTab} onChange={(tab) => {
-            setActiveTab(tab);
-            if (tab !== 'home') setSelectedMovie(null);
-          }} />
-        </>
-      )}
+      {!isMoviePage && <TopNavbar onSearchOpen={() => setSearchOpen(true)} />}
 
-      {!selectedMovie && !searchOpen && !categoriesOpen && (
-        <>
-          <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
-          <main>
-            {activeTab === 'home' && (
-              <HomePage 
-                onMovieSelect={handleMovieSelect} 
-                onCategoriesOpen={handleCategoriesOpen}
-              />
-            )}
-            {activeTab === 'wallet' && <WalletPage />}
-            {activeTab === 'downloads' && <DownloadsPage />}
-            {activeTab === 'me' && <ProfilePage onTermsClick={handleTermsClick} />}
-          </main>
-          <BottomNavbar active={activeTab} onChange={setActiveTab} />
-        </>
-      )}
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage onCategoriesOpen={handleCategoriesOpen} />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/downloads" element={<DownloadsPage />} />
+          <Route path="/me" element={<ProfilePage onTermsClick={handleTermsClick} />} />
+          <Route path="/movie/:id" element={<MovieDetailPage />} />
+          <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
+        </Routes>
+      </main>
+
+      {!isMoviePage && <BottomNavbar active={activeTab} onChange={handleTabChange} />}
     </div>
   );
 }
@@ -181,7 +184,7 @@ export default function App() {
             path="/*"
             element={
               <AuthWrapper>
-                <MainApp />
+                <MainLayout />
               </AuthWrapper>
             }
           />

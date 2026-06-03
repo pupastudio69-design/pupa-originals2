@@ -12,12 +12,11 @@ import {
 const auth = getAuth();
 const db = getFirestore();
 
-function ContinueWatchingCard({ movie, onClick }) {
+function ContinueWatchingCard({ movie }) {
   return (
     <div
       className="flex-shrink-0 cursor-pointer relative group rounded-xl overflow-hidden"
       style={{ width: 160, aspectRatio: '16/9' }}
-      onClick={() => onClick(movie)}
     >
       <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -48,7 +47,7 @@ function ContinueWatchingCard({ movie, onClick }) {
   );
 }
 
-export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
+export default function HomePage({ onCategoriesOpen }) {
   const [continueWatching, setContinueWatching] = useState([]);
   const [loadingContinue, setLoadingContinue] = useState(true);
   const [user, setUser] = useState(null);
@@ -89,7 +88,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
 
   return (
     <div className="min-h-screen bg-pupa-bg pb-24">
-      <HeroBanner onMovieSelect={onMovieSelect} />
+      <HeroBanner />
 
       {user && continueWatching.length > 0 && (
         <section className="mb-8 mt-4">
@@ -99,7 +98,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
           </div>
           <div className="scroll-row px-4">
             {continueWatching.map(m => (
-              <ContinueWatchingCard key={m.id} movie={m} onClick={onMovieSelect} />
+              <ContinueWatchingCard key={m.id} movie={m} />
             ))}
           </div>
         </section>
@@ -121,19 +120,18 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
         </section>
       )}
 
-      <ContentRow title="Trending Now" movies={TRENDING} onMovieSelect={onMovieSelect} />
-      <ContentRow title="Recently Added" movies={recentlyAdded} onMovieSelect={onMovieSelect} badge="new" />
-      <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} onMovieSelect={onMovieSelect} badge="gold" size="lg" />
-      <ContentRow title="New Releases" movies={NEW_RELEASES} onMovieSelect={onMovieSelect} badge="new" />
+      <ContentRow title="Trending Now" movies={TRENDING} />
+      <ContentRow title="Recently Added" movies={recentlyAdded} badge="new" />
+      <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} badge="gold" size="lg" />
+      <ContentRow title="New Releases" movies={NEW_RELEASES} badge="new" />
 
-      {/* Categories Section - Grid is display only, "See all" opens overlay */}
+      {/* Categories Section */}
       <section className="mb-8 px-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-body font-semibold text-white text-base">Categories</h2>
           <button 
             onClick={(e) => {
               e.stopPropagation();
-              console.log('See all categories clicked');
               onCategoriesOpen();
             }}
             className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors px-2 py-1"
@@ -144,13 +142,13 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
         <CategoriesGrid />
       </section>
 
-      <ContentRow title="African Hits" movies={AFRICAN_HITS} onMovieSelect={onMovieSelect} />
+      <ContentRow title="African Hits" movies={AFRICAN_HITS} />
 
       {comingSoon.length > 0 && (
-        <ContentRow title="Coming Soon" movies={comingSoon} onMovieSelect={onMovieSelect} badge="soon" />
+        <ContentRow title="Coming Soon" movies={comingSoon} badge="soon" />
       )}
 
-      <Top10Row onMovieSelect={onMovieSelect} />
+      <Top10Row />
 
       <div className="mx-4 mb-8 rounded-2xl p-5 relative overflow-hidden" style={{
         background: 'linear-gradient(135deg, #064e2a 0%, #0d3b23 60%, #041b11 100%)',
@@ -169,7 +167,7 @@ export default function HomePage({ onMovieSelect, onCategoriesOpen }) {
         </button>
       </div>
 
-      <ContentRow title="Recommended For You" movies={[...TRENDING].reverse()} onMovieSelect={onMovieSelect} />
+      <ContentRow title="Recommended For You" movies={[...TRENDING].reverse()} />
     </div>
   );
 }

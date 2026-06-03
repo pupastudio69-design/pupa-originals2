@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Info, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HERO_MOVIES } from '../data/movies.js';
 
-export default function HeroBanner({ onMovieSelect }) {
+export default function HeroBanner() {
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef(null);
@@ -33,10 +35,11 @@ export default function HeroBanner({ onMovieSelect }) {
 
   const genres = getGenres(movie?.genre);
 
-  // Use poster as backdrop fallback since new data doesn't have backdrop
-  const backdropUrl = movie?.backdrop || movie?.poster;
-
   if (!movie) return null;
+
+  const handleMovieClick = () => {
+    navigate(`/movie/${movie.id}`);
+  };
 
   return (
     <div className="relative w-full" style={{ height: '85vh', minHeight: 520 }}>
@@ -48,7 +51,7 @@ export default function HeroBanner({ onMovieSelect }) {
           style={{ opacity: i === current ? 1 : 0 }}
         >
           <img
-            src={m.backdrop || m.poster}
+            src={m.poster}
             alt={m.title}
             className="w-full h-full object-cover"
           />
@@ -88,9 +91,9 @@ export default function HeroBanner({ onMovieSelect }) {
           {movie.title}
         </h1>
 
-        {/* Tagline - fallback to description if no tagline */}
+        {/* Tagline */}
         <p className="font-body text-sm text-emerald-300/80 italic mb-3 font-light">
-          {movie.tagline || movie.description?.substring(0, 60) + '...'}
+          {movie.description?.substring(0, 60) + '...'}
         </p>
 
         {/* Meta */}
@@ -121,14 +124,14 @@ export default function HeroBanner({ onMovieSelect }) {
         {/* CTA Buttons */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onMovieSelect(movie)}
+            onClick={handleMovieClick}
             className="btn-gold flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold"
           >
             <Play size={16} className="fill-black" />
             Watch Now
           </button>
           <button
-            onClick={() => onMovieSelect(movie)}
+            onClick={handleMovieClick}
             className="btn-emerald flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium text-white"
           >
             <Info size={15} />

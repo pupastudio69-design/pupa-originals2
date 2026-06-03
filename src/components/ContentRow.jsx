@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
 
-export default function ContentRow({ title, movies, onMovieSelect, badge = null, size = 'md' }) {
+export default function ContentRow({ title, movies, badge = null, size = 'md' }) {
   return (
     <section className="mb-8">
       {/* Section header */}
@@ -35,7 +35,6 @@ export default function ContentRow({ title, movies, onMovieSelect, badge = null,
           <MovieCard
             key={movie.id}
             movie={movie}
-            onClick={onMovieSelect}
             size={size}
           />
         ))}
