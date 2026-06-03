@@ -1,6 +1,29 @@
 import React from 'react';
-import { getMoviesByCategory } from '../movies.js';
 import { Play, Star } from 'lucide-react';
+
+// Try multiple possible paths for movies.js
+let getMoviesByCategory;
+try {
+  // Try src/movies.js (most common)
+  const movies = require('../movies.js');
+  getMoviesByCategory = movies.getMoviesByCategory;
+} catch (e1) {
+  try {
+    // Try src/data/movies.js
+    const movies = require('../data/movies.js');
+    getMoviesByCategory = movies.getMoviesByCategory;
+  } catch (e2) {
+    try {
+      // Try src/lib/movies.js
+      const movies = require('../lib/movies.js');
+      getMoviesByCategory = movies.getMoviesByCategory;
+    } catch (e3) {
+      // Fallback: return empty array
+      getMoviesByCategory = () => [];
+      console.warn('movies.js not found. Please ensure it exists in src/ folder');
+    }
+  }
+}
 
 export default function CategoriesGrid({ onMovieSelect, onCategorySelect }) {
   const categories = [
@@ -47,36 +70,40 @@ export default function CategoriesGrid({ onMovieSelect, onCategorySelect }) {
                 See All
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {movies.map(movie => (
-                <button
-                  key={movie.id}
-                  onClick={() => onMovieSelect(movie)}
-                  className="relative aspect-[2/3] rounded-xl overflow-hidden group"
-                >
-                  <img 
-                    src={movie.poster} 
-                    alt={movie.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-2">
-                    <p className="text-white text-xs font-semibold truncate">{movie.title}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-3 h-3 text-yellow-400" />
-                      <span className="text-yellow-400 text-xs">{movie.rating}</span>
-                      <span className="text-gray-400 text-xs ml-1">{movie.year}</span>
+            {movies.length === 0 ? (
+              <p className="text-gray-500 text-sm">No movies found. Check movies.js location.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {movies.map(movie => (
+                  <button
+                    key={movie.id}
+                    onClick={() => onMovieSelect(movie)}
+                    className="relative aspect-[2/3] rounded-xl overflow-hidden group"
+                  >
+                    <img 
+                      src={movie.poster} 
+                      alt={movie.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <p className="text-white text-xs font-semibold truncate">{movie.title}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-3 h-3 text-yellow-400" />
+                        <span className="text-yellow-400 text-xs">{movie.rating}</span>
+                        <span className="text-gray-400 text-xs ml-1">{movie.year}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Play className="w-5 h-5 text-white" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <Play className="w-5 h-5 text-white" />
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         );
       })}
