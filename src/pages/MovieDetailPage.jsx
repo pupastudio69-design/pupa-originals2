@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMovieById, ALL_MOVIES } from '../movies.js';
+import { getMovieById, ALL_MOVIES } from '../data/movies.js';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, Gift, Download, 
-  Plus, Check, Play, Star, Clock, Calendar, Users, Copy, X
+  Plus, Check, Star, Clock, Calendar, Users, Copy, X
 } from 'lucide-react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -25,7 +25,6 @@ export default function MovieDetailPage() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const COIN_PACKAGES = [
     { coins: 100, price: 500, label: '100 Coins' },
@@ -43,7 +42,6 @@ export default function MovieDetailPage() {
       checkWatchlist(currentUser.uid);
       loadComments();
     }
-    setLoading(false);
   }, [id, movie]);
 
   const checkWatchlist = async (uid) => {
@@ -253,7 +251,6 @@ export default function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-20">
-      {/* Video Player */}
       <div className="relative w-full aspect-video bg-black">
         <iframe
           src={movie.videoUrl}
@@ -262,8 +259,6 @@ export default function MovieDetailPage() {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           title={movie.title}
         />
-
-        {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/80 transition-colors"
@@ -272,9 +267,7 @@ export default function MovieDetailPage() {
         </button>
       </div>
 
-      {/* Movie Info */}
       <div className="px-4 py-6">
-        {/* Title & Actions */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white mb-2">{movie.title}</h1>
@@ -316,7 +309,6 @@ export default function MovieDetailPage() {
           </div>
         </div>
 
-        {/* Rating */}
         <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center gap-1">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
@@ -326,7 +318,6 @@ export default function MovieDetailPage() {
           <span className="text-gray-500 text-sm">{movie.views} views</span>
         </div>
 
-        {/* Genre Tags */}
         <div className="flex flex-wrap gap-2 mb-4">
           {movie.genre.map((g, i) => (
             <span key={i} className="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">
@@ -335,12 +326,10 @@ export default function MovieDetailPage() {
           ))}
         </div>
 
-        {/* Description */}
         <p className="text-gray-300 text-sm leading-relaxed mb-6">
           {movie.description}
         </p>
 
-        {/* Cast & Crew */}
         <div className="mb-6">
           <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -358,7 +347,6 @@ export default function MovieDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="grid grid-cols-4 gap-3 mb-6">
           <button
             onClick={handleDownload}
@@ -400,19 +388,16 @@ export default function MovieDetailPage() {
           </button>
         </div>
 
-        {/* Source Attribution */}
         <div className="mb-6 p-3 bg-gray-800/50 rounded-lg">
           <p className="text-xs text-gray-500">
             Source: <span className="text-gray-400">{movie.source}</span>
           </p>
         </div>
 
-        {/* Comments Section */}
         {showComments && (
           <div className="mb-6">
             <h3 className="text-white font-semibold mb-4">Comments ({comments.length})</h3>
 
-            {/* Comment Form */}
             {user ? (
               <form onSubmit={submitComment} className="mb-4">
                 <div className="flex gap-2">
@@ -436,7 +421,6 @@ export default function MovieDetailPage() {
               <p className="text-gray-500 text-sm mb-4">Sign in to comment</p>
             )}
 
-            {/* Comments List */}
             <div className="space-y-3">
               {comments.length === 0 ? (
                 <p className="text-gray-500 text-sm text-center py-4">No comments yet. Be the first!</p>
@@ -460,7 +444,6 @@ export default function MovieDetailPage() {
           </div>
         )}
 
-        {/* Related Movies */}
         {relatedMovies.length > 0 && (
           <div>
             <h3 className="text-white font-semibold mb-4">Related Movies</h3>
@@ -490,7 +473,6 @@ export default function MovieDetailPage() {
         )}
       </div>
 
-      {/* Gift Modal */}
       {showGiftModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm border border-white/10">
@@ -534,7 +516,6 @@ export default function MovieDetailPage() {
         </div>
       )}
 
-      {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm border border-white/10">
