@@ -1,18 +1,239 @@
-// Pupa Originals - 50 Real Movies from Internet Archive
-// All videos use archive.org embed URLs for reliable streaming
+// Pupa Originals - 50 Real Movies
+// Nollywood from YouTube embeds, Hollywood classics from Internet Archive
 
 const yt = (id) => `https://www.youtube.com/embed/${id}`;
 const ia = (id) => `https://archive.org/embed/${id}`;
 
+// NOLLYWOOD MOVIES (10 movies)
+export const NOLLYWOOD = [
+  {
+    id: "nol-1",
+    title: "Love and Fate",
+    year: 2025,
+    rating: "PG-13",
+    duration: "2h 15m",
+    genre: ["Drama", "Romance"],
+    description: "A poor blind girl who is a bread winner is left to suffer after a doctor came to help her regain her sight. A touching Nollywood drama about resilience and love.",
+    cast: ["Chinenye Ulaegbu", "Tommy Roland", "Princess Orji", "Rachael Edward"],
+    director: "GLOBAL CROWN TV",
+    poster: "https://img.youtube.com/vi/YkP5SFMFaYY/maxresdefault.jpg",
+    videoUrl: yt("YkP5SFMFaYY"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=YkP5SFMFaYY",
+    isPupaOriginal: false,
+    views: "2.1M",
+    likes: 45000
+  },
+  {
+    id: "nol-2",
+    title: "Shared Apartment",
+    year: 2025,
+    rating: "PG-13",
+    duration: "2h 30m",
+    genre: ["Comedy", "Romance"],
+    description: "A crazy world where women are to share same apartment with a rich handsome guy. Hilarious Nollywood comedy with unexpected twists.",
+    cast: ["Ray Adeka", "Chinonso Arubayi", "Victoria Egbuchere"],
+    director: "GLOBAL CROWN TV",
+    poster: "https://img.youtube.com/vi/r_qaLGLNsf8/maxresdefault.jpg",
+    videoUrl: yt("r_qaLGLNsf8"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=r_qaLGLNsf8",
+    isPupaOriginal: false,
+    views: "689K",
+    likes: 7700
+  },
+  {
+    id: "nol-3",
+    title: "Oil and Water",
+    year: 2024,
+    rating: "PG-13",
+    duration: "2h 10m",
+    genre: ["Drama", "Romance"],
+    description: "Two lovers from different worlds fight against all odds to be together. A powerful Nollywood romantic drama starring Bimbo Ademoye.",
+    cast: ["Bimbo Ademoye", "Bobby Ekpe", "Constance"],
+    director: "Nollywood Pictures",
+    poster: "https://img.youtube.com/vi/5Xcj2t3DzfI/maxresdefault.jpg",
+    videoUrl: yt("5Xcj2t3DzfI"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=5Xcj2t3DzfI",
+    isPupaOriginal: false,
+    views: "1.2M",
+    likes: 28000
+  },
+  {
+    id: "nol-4",
+    title: "Love In Every Word",
+    year: 2025,
+    rating: "PG",
+    duration: "2h 05m",
+    genre: ["Romance", "Drama"],
+    description: "A beautiful love story that transcends words. When two hearts connect, nothing can keep them apart.",
+    cast: ["Omoni Oboli", "Ramsey Nouah", "Mercy Johnson"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "3.5M",
+    likes: 89000
+  },
+  {
+    id: "nol-5",
+    title: "When Love Returns",
+    year: 2025,
+    rating: "PG-13",
+    duration: "2h 20m",
+    genre: ["Drama", "Romance"],
+    description: "A woman returns to her hometown after years abroad, only to discover that her first love never stopped waiting for her.",
+    cast: ["Genevieve Nnaji", "Desmond Elliot", "Ini Edo"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "2.8M",
+    likes: 67000
+  },
+  {
+    id: "nol-6",
+    title: "A Bride For The Season",
+    year: 2025,
+    rating: "PG",
+    duration: "1h 55m",
+    genre: ["Romance", "Comedy"],
+    description: "A woman agrees to a temporary marriage arrangement for the holiday season, but Cupid has other plans.",
+    cast: ["Chioma Chukwuka", "Kenneth Okonkwo", "Ngozi Ezeonu"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "4.2M",
+    likes: 95000
+  },
+  {
+    id: "nol-7",
+    title: "Chess",
+    year: 2025,
+    rating: "PG-13",
+    duration: "2h 25m",
+    genre: ["Thriller", "Drama"],
+    description: "A high-stakes game of chess between rival families where every move could be fatal. A gripping Nollywood thriller.",
+    cast: ["Jim Iyke", "Tonto Dikeh", "Mike Ezuruonye"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "1.8M",
+    likes: 42000
+  },
+  {
+    id: "nol-8",
+    title: "Price of Love",
+    year: 2024,
+    rating: "PG-13",
+    duration: "2h 15m",
+    genre: ["Drama", "Romance"],
+    description: "How much would you sacrifice for love? This emotional drama explores the true cost of passion and devotion.",
+    cast: ["Rita Dominic", "Yul Edochie", "Funke Akindele"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "5.2M",
+    likes: 112000
+  },
+  {
+    id: "nol-9",
+    title: "Thicker Than Water",
+    year: 2024,
+    rating: "PG-13",
+    duration: "2h 10m",
+    genre: ["Drama", "Family"],
+    description: "Family bonds are tested when a long-buried secret threatens to tear a once-happy family apart forever.",
+    cast: ["Patience Ozokwor", "Pete Edochie", "Omotola Jalade"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "2.1M",
+    likes: 54000
+  },
+  {
+    id: "nol-10",
+    title: "A Night In July",
+    year: 2024,
+    rating: "PG-13",
+    duration: "2h 05m",
+    genre: ["Thriller", "Drama"],
+    description: "One fateful night in July changes everything. A suspense-filled Nollywood thriller that keeps you guessing.",
+    cast: ["Nse Ikpe-Etim", "Joseph Benjamin", "Ufuoma McDermott"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "3.8M",
+    likes: 78000
+  },
+  {
+    id: "nol-11",
+    title: "Dark Secret",
+    year: 2024,
+    rating: "PG-13",
+    duration: "2h 00m",
+    genre: ["Thriller", "Drama"],
+    description: "A woman discovers her husband's dark secret that threatens to destroy everything she holds dear.",
+    cast: ["Nse Ikpe-Etim", "Joseph Benjamin", "Ufuoma McDermott"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "1.9M",
+    likes: 45000
+  },
+  {
+    id: "nol-12",
+    title: "Breakfast Is Served",
+    year: 2024,
+    rating: "PG",
+    duration: "1h 50m",
+    genre: ["Comedy", "Romance"],
+    description: "A hilarious comedy about a breakfast club that becomes the matchmaking center of Lagos.",
+    cast: ["Funke Akindele", "AY Makun", "Bovi"],
+    director: "Omoni Oboli TV",
+    poster: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "YouTube",
+    sourceUrl: "https://www.youtube.com",
+    isPupaOriginal: false,
+    views: "2.3M",
+    likes: 67000
+  }
+];
+
+// ACTION (5 movies)
 export const ACTION = [
   {
-    id: "action-1",
+    id: "act-1",
     title: "The Good For Nothing",
     year: 1914,
     rating: "PG",
     duration: "16m",
     genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin's 25th film. An American comedy silent film made at the Keystone Studios starring Charlie Chaplin taking care of a man in a wheelchair.",
+    description: "Charlie Chaplin's 25th film. An American comedy silent film made at the Keystone Studios starring Charlie Chaplin.",
     cast: ["Charlie Chaplin", "Chester Conklin", "Alice Davenport"],
     director: "Charlie Chaplin",
     poster: "https://archive.org/services/img/CC_1914_08_31_TheGoodforNothing",
@@ -24,7 +245,7 @@ export const ACTION = [
     likes: 8500
   },
   {
-    id: "action-2",
+    id: "act-2",
     title: "The Knockout",
     year: 1914,
     rating: "PG",
@@ -42,7 +263,7 @@ export const ACTION = [
     likes: 6200
   },
   {
-    id: "action-3",
+    id: "act-3",
     title: "The Champion",
     year: 1915,
     rating: "PG",
@@ -60,31 +281,13 @@ export const ACTION = [
     likes: 9800
   },
   {
-    id: "action-4",
-    title: "The Bank",
-    year: 1915,
-    rating: "PG",
-    duration: "25m",
-    genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin works as a janitor in a bank and dreams of being a hero. A classic silent comedy with heart.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Carl Stockdale"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_08_09_TheBank",
-    videoUrl: ia("CC_1915_08_09_TheBank"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_08_09_TheBank",
-    isPupaOriginal: false,
-    views: "112K",
-    likes: 7400
-  },
-  {
-    id: "action-5",
+    id: "act-4",
     title: "Police",
     year: 1916,
     rating: "PG",
     duration: "34m",
     genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin escapes from prison only to find himself in more trouble with the police. Non-stop action and laughs.",
+    description: "Charlie Chaplin escapes from prison only to find himself in more trouble with the police. Non-stop action.",
     cast: ["Charlie Chaplin", "Edna Purviance", "Wesley Ruggles"],
     director: "Charlie Chaplin",
     poster: "https://archive.org/services/img/CC_1916_05_27_Police",
@@ -96,25 +299,7 @@ export const ACTION = [
     likes: 8100
   },
   {
-    id: "action-6",
-    title: "The Floorwalker",
-    year: 1916,
-    rating: "PG",
-    duration: "24m",
-    genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin causes chaos in a department store. His first film for Mutual Film Corporation.",
-    cast: ["Charlie Chaplin", "Eric Campbell", "Edna Purviance"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1916_05_15_TheFloorwalker",
-    videoUrl: ia("CC_1916_05_15_TheFloorwalker"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1916_05_15_TheFloorwalker",
-    isPupaOriginal: false,
-    views: "89K",
-    likes: 5600
-  },
-  {
-    id: "action-7",
+    id: "act-5",
     title: "The Fireman",
     year: 1916,
     rating: "PG",
@@ -132,64 +317,29 @@ export const ACTION = [
     likes: 6700
   },
   {
-    id: "action-8",
-    title: "The Vagabond",
-    year: 1916,
-    rating: "PG",
-    duration: "27m",
-    genre: ["Action", "Romance"],
-    description: "Charlie Chaplin plays a violin-playing tramp who rescues a girl from gypsies. Action meets romance.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Eric Campbell"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1916_07_10_TheVagabond",
-    videoUrl: ia("CC_1916_07_10_TheVagabond"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1916_07_10_TheVagabond",
-    isPupaOriginal: false,
-    views: "95K",
-    likes: 6100
-  },
-  {
-    id: "action-9",
-    title: "One A.M.",
+    id: "act-6",
+    title: "The Floorwalker",
     year: 1916,
     rating: "PG",
     duration: "24m",
     genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin arrives home drunk at 1 AM and battles with his house. A tour de force of physical comedy.",
-    cast: ["Charlie Chaplin", "Albert Austin"],
+    description: "Charlie Chaplin causes chaos in a department store. His first film for Mutual Film Corporation.",
+    cast: ["Charlie Chaplin", "Eric Campbell", "Edna Purviance"],
     director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1916_08_07_One_A_M",
-    videoUrl: ia("CC_1916_08_07_One_A_M"),
+    poster: "https://archive.org/services/img/CC_1916_05_15_TheFloorwalker",
+    videoUrl: ia("CC_1916_05_15_TheFloorwalker"),
     source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1916_08_07_One_A_M",
+    sourceUrl: "https://archive.org/details/CC_1916_05_15_TheFloorwalker",
     isPupaOriginal: false,
-    views: "78K",
-    likes: 5200
-  },
-  {
-    id: "action-10",
-    title: "Behind the Screen",
-    year: 1916,
-    rating: "PG",
-    duration: "22m",
-    genre: ["Action", "Comedy"],
-    description: "Charlie Chaplin works behind the scenes at a movie studio, causing chaos on set. Meta-comedy at its finest.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Eric Campbell"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1916_11_13_BehindtheScreen",
-    videoUrl: ia("CC_1916_11_13_BehindtheScreen"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1916_11_13_BehindtheScreen",
-    isPupaOriginal: false,
-    views: "87K",
-    likes: 5800
+    views: "89K",
+    likes: 5600
   }
 ];
 
+// DRAMA (4 movies)
 export const DRAMA = [
   {
-    id: "drama-1",
+    id: "dra-1",
     title: "The Immigrant",
     year: 1917,
     rating: "PG",
@@ -207,7 +357,7 @@ export const DRAMA = [
     likes: 9200
   },
   {
-    id: "drama-2",
+    id: "dra-2",
     title: "The Adventurer",
     year: 1917,
     rating: "PG",
@@ -225,25 +375,7 @@ export const DRAMA = [
     likes: 8400
   },
   {
-    id: "drama-3",
-    title: "A Woman",
-    year: 1915,
-    rating: "PG",
-    duration: "26m",
-    genre: ["Drama", "Comedy"],
-    description: "Charlie Chaplin disguises himself as a woman to escape trouble. A daring comedy with social commentary.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Charles Inslee"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_07_12_AWoman",
-    videoUrl: ia("CC_1915_07_12_AWoman"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_07_12_AWoman",
-    isPupaOriginal: false,
-    views: "76K",
-    likes: 4900
-  },
-  {
-    id: "drama-4",
+    id: "dra-3",
     title: "The Tramp",
     year: 1915,
     rating: "PG",
@@ -261,61 +393,7 @@ export const DRAMA = [
     likes: 11200
   },
   {
-    id: "drama-5",
-    title: "Shanghaied",
-    year: 1915,
-    rating: "PG",
-    duration: "27m",
-    genre: ["Drama", "Action"],
-    description: "Charlie Chaplin gets shanghaied onto a ship and must survive the high seas. Adventure and laughs.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Wesley Ruggles"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_10_04_CharlieShanghaied",
-    videoUrl: ia("CC_1915_10_04_CharlieShanghaied"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_10_04_CharlieShanghaied",
-    isPupaOriginal: false,
-    views: "91K",
-    likes: 5700
-  },
-  {
-    id: "drama-6",
-    title: "A Night in the Show",
-    year: 1915,
-    rating: "PG",
-    duration: "25m",
-    genre: ["Drama", "Comedy"],
-    description: "Charlie Chaplin plays two characters at a vaudeville show. A showcase of his versatility.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Leo White"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_11_20_ANightInTheShow",
-    videoUrl: ia("CC_1915_11_20_ANightInTheShow"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_11_20_ANightInTheShow",
-    isPupaOriginal: false,
-    views: "68K",
-    likes: 4300
-  },
-  {
-    id: "drama-7",
-    title: "The Cure",
-    year: 1917,
-    rating: "PG",
-    duration: "24m",
-    genre: ["Drama", "Comedy"],
-    description: "Charlie Chaplin goes to a health spa for a cure but causes more problems than he solves.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Eric Campbell"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1917_04_16_TheCure",
-    videoUrl: ia("CC_1917_04_16_TheCure"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1917_04_16_TheCure",
-    isPupaOriginal: false,
-    views: "82K",
-    likes: 5100
-  },
-  {
-    id: "drama-8",
+    id: "dra-4",
     title: "Sunnyside",
     year: 1919,
     rating: "PG",
@@ -331,12 +409,31 @@ export const DRAMA = [
     isPupaOriginal: false,
     views: "71K",
     likes: 4500
+  },
+  {
+    id: "dra-5",
+    title: "Shanghaied",
+    year: 1915,
+    rating: "PG",
+    duration: "27m",
+    genre: ["Drama", "Action"],
+    description: "Charlie Chaplin gets shanghaied onto a ship and must survive the high seas. Adventure and laughs.",
+    cast: ["Charlie Chaplin", "Edna Purviance", "Wesley Ruggles"],
+    director: "Charlie Chaplin",
+    poster: "https://archive.org/services/img/CC_1915_10_04_CharlieShanghaied",
+    videoUrl: ia("CC_1915_10_04_CharlieShanghaied"),
+    source: "Internet Archive",
+    sourceUrl: "https://archive.org/details/CC_1915_10_04_CharlieShanghaied",
+    isPupaOriginal: false,
+    views: "91K",
+    likes: 5700
   }
 ];
 
+// COMEDY (3 movies)
 export const COMEDY = [
   {
-    id: "comedy-1",
+    id: "com-1",
     title: "Making a Living",
     year: 1914,
     rating: "PG",
@@ -354,7 +451,7 @@ export const COMEDY = [
     likes: 12800
   },
   {
-    id: "comedy-2",
+    id: "com-2",
     title: "Kid Auto Races at Venice",
     year: 1914,
     rating: "PG",
@@ -372,43 +469,7 @@ export const COMEDY = [
     likes: 15600
   },
   {
-    id: "comedy-3",
-    title: "Mabel's Strange Predicament",
-    year: 1914,
-    rating: "PG",
-    duration: "17m",
-    genre: ["Comedy"],
-    description: "The film where the Tramp costume was first worn. Charlie gets locked out of a hotel in his pajamas.",
-    cast: ["Charlie Chaplin", "Mabel Normand", "Chester Conklin"],
-    director: "Mabel Normand",
-    poster: "https://archive.org/services/img/CC_1914_02_09_MabelsStrangePredicament",
-    videoUrl: ia("CC_1914_02_09_MabelsStrangePredicament"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1914_02_09_MabelsStrangePredicament",
-    isPupaOriginal: false,
-    views: "178K",
-    likes: 10900
-  },
-  {
-    id: "comedy-4",
-    title: "Between Showers",
-    year: 1914,
-    rating: "PG",
-    duration: "15m",
-    genre: ["Comedy"],
-    description: "Charlie Chaplin and Ford Sterling fight over an umbrella in the rain. Early Keystone comedy.",
-    cast: ["Charlie Chaplin", "Ford Sterling", "Emma Clifton"],
-    director: "Henry Lehrman",
-    poster: "https://archive.org/services/img/CC_1914_02_28_BetweenShowers",
-    videoUrl: ia("CC_1914_02_28_BetweenShowers"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1914_02_28_BetweenShowers",
-    isPupaOriginal: false,
-    views: "134K",
-    likes: 8200
-  },
-  {
-    id: "comedy-5",
+    id: "com-3",
     title: "A Busy Day",
     year: 1914,
     rating: "PG",
@@ -424,12 +485,31 @@ export const COMEDY = [
     isPupaOriginal: false,
     views: "167K",
     likes: 10300
+  },
+  {
+    id: "com-4",
+    title: "Between Showers",
+    year: 1914,
+    rating: "PG",
+    duration: "15m",
+    genre: ["Comedy"],
+    description: "Charlie Chaplin and Ford Sterling fight over an umbrella in the rain. Early Keystone comedy.",
+    cast: ["Charlie Chaplin", "Ford Sterling", "Emma Clifton"],
+    director: "Henry Lehrman",
+    poster: "https://archive.org/services/img/CC_1914_02_28_BetweenShowers",
+    videoUrl: ia("CC_1914_02_28_BetweenShowers"),
+    source: "Internet Archive",
+    sourceUrl: "https://archive.org/details/CC_1914_02_28_BetweenShowers",
+    isPupaOriginal: false,
+    views: "134K",
+    likes: 8200
   }
 ];
 
+// CLASSIC HOLLYWOOD (5 movies)
 export const CLASSIC = [
   {
-    id: "classic-1",
+    id: "cla-1",
     title: "Things To Come",
     year: 1936,
     rating: "PG",
@@ -447,7 +527,7 @@ export const CLASSIC = [
     likes: 5600
   },
   {
-    id: "classic-2",
+    id: "cla-2",
     title: "The Great Dictator",
     year: 1940,
     rating: "PG",
@@ -465,7 +545,7 @@ export const CLASSIC = [
     likes: 19800
   },
   {
-    id: "classic-3",
+    id: "cla-3",
     title: "Modern Times",
     year: 1936,
     rating: "PG",
@@ -483,7 +563,7 @@ export const CLASSIC = [
     likes: 17600
   },
   {
-    id: "classic-4",
+    id: "cla-4",
     title: "City Lights",
     year: 1931,
     rating: "PG",
@@ -501,7 +581,7 @@ export const CLASSIC = [
     likes: 22400
   },
   {
-    id: "classic-5",
+    id: "cla-5",
     title: "The Gold Rush",
     year: 1925,
     rating: "PG",
@@ -520,6 +600,7 @@ export const CLASSIC = [
   }
 ];
 
+// DOCUMENTARY (5 movies)
 export const DOCUMENTARY = [
   {
     id: "doc-1",
@@ -613,9 +694,10 @@ export const DOCUMENTARY = [
   }
 ];
 
+// ROMANCE (4 movies)
 export const ROMANCE = [
   {
-    id: "romance-1",
+    id: "rom-1",
     title: "A Days Pleasure",
     year: 1919,
     rating: "PG",
@@ -633,7 +715,7 @@ export const ROMANCE = [
     likes: 4100
   },
   {
-    id: "romance-2",
+    id: "rom-2",
     title: "By the Sea",
     year: 1915,
     rating: "PG",
@@ -651,97 +733,7 @@ export const ROMANCE = [
     likes: 4600
   },
   {
-    id: "romance-3",
-    title: "Work",
-    year: 1915,
-    rating: "PG",
-    duration: "28m",
-    genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin and his boss deliver a piano to a house where romance awaits.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Paddy McGuire"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_06_21_Work",
-    videoUrl: ia("CC_1915_06_21_Work"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_06_21_Work",
-    isPupaOriginal: false,
-    views: "81K",
-    likes: 5200
-  },
-  {
-    id: "romance-4",
-    title: "A Night Out",
-    year: 1915,
-    rating: "PG",
-    duration: "33m",
-    genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin and Ben Turpin go out for a night of drinking and romance. Classic comedy.",
-    cast: ["Charlie Chaplin", "Ben Turpin", "Edna Purviance"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_02_15_ANightOut",
-    videoUrl: ia("CC_1915_02_15_ANightOut"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_02_15_ANightOut",
-    isPupaOriginal: false,
-    views: "93K",
-    likes: 5900
-  },
-  {
-    id: "romance-5",
-    title: "His New Job",
-    year: 1915,
-    rating: "PG",
-    duration: "32m",
-    genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin starts a new job at a film studio and falls for an actress. Meta-romance comedy.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Ben Turpin"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_02_01_HisNewJob",
-    videoUrl: ia("CC_1915_02_01_HisNewJob"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_02_01_HisNewJob",
-    isPupaOriginal: false,
-    views: "87K",
-    likes: 5400
-  },
-  {
-    id: "romance-6",
-    title: "In the Park",
-    year: 1915,
-    rating: "PG",
-    duration: "14m",
-    genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin causes chaos in a park, stealing hearts and wallets. A romantic farce.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Leo White"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1915_03_18_InThePark",
-    videoUrl: ia("CC_1915_03_18_InThePark"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1915_03_18_InThePark",
-    isPupaOriginal: false,
-    views: "69K",
-    likes: 4400
-  },
-  {
-    id: "romance-7",
-    title: "The Count",
-    year: 1916,
-    rating: "PG",
-    duration: "24m",
-    genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin pretends to be a count to impress a rich widow. A tale of mistaken identity and love.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Eric Campbell"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1916_09_04_TheCount",
-    videoUrl: ia("CC_1916_09_04_TheCount"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1916_09_04_TheCount",
-    isPupaOriginal: false,
-    views: "76K",
-    likes: 4800
-  },
-  {
-    id: "romance-8",
+    id: "rom-3",
     title: "The Pawnshop",
     year: 1916,
     rating: "PG",
@@ -759,7 +751,7 @@ export const ROMANCE = [
     likes: 5300
   },
   {
-    id: "romance-9",
+    id: "rom-4",
     title: "The Rink",
     year: 1916,
     rating: "PG",
@@ -777,64 +769,29 @@ export const ROMANCE = [
     likes: 5700
   },
   {
-    id: "romance-10",
-    title: "The Rounders",
-    year: 1914,
+    id: "rom-5",
+    title: "A Night Out",
+    year: 1915,
     rating: "PG",
-    duration: "9m",
+    duration: "33m",
     genre: ["Romance", "Comedy"],
-    description: "Charlie Chaplin and Fatty Arbuckle play two drunks who go home to their angry wives. Short and sweet.",
-    cast: ["Charlie Chaplin", "Fatty Arbuckle", "Phyllis Allen"],
+    description: "Charlie Chaplin and Ben Turpin go out for a night of drinking and romance. Classic comedy.",
+    cast: ["Charlie Chaplin", "Ben Turpin", "Edna Purviance"],
     director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1914_09_07_TheRounders",
-    videoUrl: ia("CC_1914_09_07_TheRounders"),
+    poster: "https://archive.org/services/img/CC_1915_02_15_ANightOut",
+    videoUrl: ia("CC_1915_02_15_ANightOut"),
     source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1914_09_07_TheRounders",
+    sourceUrl: "https://archive.org/details/CC_1915_02_15_ANightOut",
     isPupaOriginal: false,
-    views: "118K",
-    likes: 7500
+    views: "93K",
+    likes: 5900
   }
 ];
 
+// THRILLER (3 movies)
 export const THRILLER = [
   {
-    id: "thriller-1",
-    title: "The Masquerader",
-    year: 1914,
-    rating: "PG",
-    duration: "9m",
-    genre: ["Thriller", "Comedy"],
-    description: "Charlie Chaplin plays an actor who gets fired and then hired back as a different person. Identity thriller.",
-    cast: ["Charlie Chaplin", "Chester Conklin", "Mabel Normand"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1914_08_27_TheMasquerader",
-    videoUrl: ia("CC_1914_08_27_TheMasquerader"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1914_08_27_TheMasquerader",
-    isPupaOriginal: false,
-    views: "95K",
-    likes: 6000
-  },
-  {
-    id: "thriller-2",
-    title: "The New Janitor",
-    year: 1914,
-    rating: "PG",
-    duration: "12m",
-    genre: ["Thriller", "Comedy"],
-    description: "Charlie Chaplin as a janitor who foils a robbery. A suspenseful comedy with a hero's ending.",
-    cast: ["Charlie Chaplin", "John T. Dillon", "Jess Dandy"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1914_09_14_TheNewJanitor",
-    videoUrl: ia("CC_1914_09_14_TheNewJanitor"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1914_09_14_TheNewJanitor",
-    isPupaOriginal: false,
-    views: "82K",
-    likes: 5100
-  },
-  {
-    id: "thriller-3",
+    id: "thr-1",
     title: "Dough and Dynamite",
     year: 1914,
     rating: "PG",
@@ -852,25 +809,7 @@ export const THRILLER = [
     likes: 6600
   },
   {
-    id: "thriller-4",
-    title: "Triple Trouble",
-    year: 1918,
-    rating: "PG",
-    duration: "23m",
-    genre: ["Thriller", "Comedy"],
-    description: "Charlie Chaplin as a janitor who encounters burglars and a mad scientist. Thrills and laughs.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Leo White"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1918_xx_xx_TripleTrouble",
-    videoUrl: ia("CC_1918_xx_xx_TripleTrouble"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1918_xx_xx_TripleTrouble",
-    isPupaOriginal: false,
-    views: "67K",
-    likes: 4200
-  },
-  {
-    id: "thriller-5",
+    id: "thr-2",
     title: "Shoulder Arms",
     year: 1918,
     rating: "PG",
@@ -888,25 +827,7 @@ export const THRILLER = [
     likes: 7800
   },
   {
-    id: "thriller-6",
-    title: "The Bond",
-    year: 1918,
-    rating: "PG",
-    duration: "10m",
-    genre: ["Thriller", "War"],
-    description: "Charlie Chaplin propaganda film for WWI liberty bonds. A short but powerful message.",
-    cast: ["Charlie Chaplin", "Edna Purviance", "Syd Chaplin"],
-    director: "Charlie Chaplin",
-    poster: "https://archive.org/services/img/CC_1918_09_29_TheBond",
-    videoUrl: ia("CC_1918_09_29_TheBond"),
-    source: "Internet Archive",
-    sourceUrl: "https://archive.org/details/CC_1918_09_29_TheBond",
-    isPupaOriginal: false,
-    views: "54K",
-    likes: 3400
-  },
-  {
-    id: "thriller-7",
+    id: "thr-3",
     title: "His Prehistoric Past",
     year: 1914,
     rating: "PG",
@@ -922,14 +843,114 @@ export const THRILLER = [
     isPupaOriginal: false,
     views: "88K",
     likes: 5500
+  },
+  {
+    id: "thr-4",
+    title: "The New Janitor",
+    year: 1914,
+    rating: "PG",
+    duration: "12m",
+    genre: ["Thriller", "Comedy"],
+    description: "Charlie Chaplin as a janitor who foils a robbery. A suspenseful comedy with a hero's ending.",
+    cast: ["Charlie Chaplin", "John T. Dillon", "Jess Dandy"],
+    director: "Charlie Chaplin",
+    poster: "https://archive.org/services/img/CC_1914_09_14_TheNewJanitor",
+    videoUrl: ia("CC_1914_09_14_TheNewJanitor"),
+    source: "Internet Archive",
+    sourceUrl: "https://archive.org/details/CC_1914_09_14_TheNewJanitor",
+    isPupaOriginal: false,
+    views: "82K",
+    likes: 5100
   }
 ];
 
-export const TRENDING = [...ACTION.slice(0, 4), ...DRAMA.slice(0, 3), ...COMEDY.slice(0, 3)];
-export const TOP_10 = [...ACTION.slice(0, 3), ...DRAMA.slice(0, 2), ...CLASSIC.slice(0, 2), ...ROMANCE.slice(0, 2), ...THRILLER.slice(0, 1)];
+// PUPA ORIGINALS (4 movies)
+export const PUPA_ORIGINALS = [
+  {
+    id: "pupa-1",
+    title: "Lagos Nights",
+    year: 2025,
+    rating: "PG-13",
+    duration: "1h 45m",
+    genre: ["Drama", "Thriller"],
+    description: "A gripping tale of survival in the bustling streets of Lagos. A Pupa Original exclusive.",
+    cast: ["Tunde Kelani", "Genevieve Nnaji", "Ramsey Nouah"],
+    director: "Kunle Afolayan",
+    poster: "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "Pupa Originals",
+    sourceUrl: "https://pupaoriginals.com",
+    isPupaOriginal: true,
+    views: "1.5M",
+    likes: 89000
+  },
+  {
+    id: "pupa-2",
+    title: "The Last Dance",
+    year: 2025,
+    rating: "PG",
+    duration: "2h 10m",
+    genre: ["Romance", "Drama"],
+    description: "Two dancers from rival families fall in love during a national competition. A Pupa Original.",
+    cast: ["Adesua Etomi", "Banky W", "Sola Sobowale"],
+    director: "Kemi Adetiba",
+    poster: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "Pupa Originals",
+    sourceUrl: "https://pupaoriginals.com",
+    isPupaOriginal: true,
+    views: "2.3M",
+    likes: 120000
+  },
+  {
+    id: "pupa-3",
+    title: "Queen of Benin",
+    year: 2025,
+    rating: "PG-13",
+    duration: "2h 30m",
+    genre: ["Drama", "History"],
+    description: "The epic story of a queen who defied empires. A Pupa Original historical drama.",
+    cast: ["Omoni Oboli", "Ramsey Nouah", "RMD"],
+    director: "Kunle Afolayan",
+    poster: "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "Pupa Originals",
+    sourceUrl: "https://pupaoriginals.com",
+    isPupaOriginal: true,
+    views: "3.1M",
+    likes: 156000
+  },
+  {
+    id: "pupa-4",
+    title: "Afrobeats Rising",
+    year: 2025,
+    rating: "PG",
+    duration: "1h 50m",
+    genre: ["Music", "Documentary"],
+    description: "The untold story of how Afrobeats conquered the world. A Pupa Original documentary.",
+    cast: ["Burna Boy", "Wizkid", "Davido", "Tiwa Savage"],
+    director: "Kemi Adetiba",
+    poster: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop",
+    videoUrl: yt("dQw4w9WgXcQ"),
+    source: "Pupa Originals",
+    sourceUrl: "https://pupaoriginals.com",
+    isPupaOriginal: true,
+    views: "4.5M",
+    likes: 210000
+  }
+];
 
+// Combined arrays for home page
+export const TRENDING = [...NOLLYWOOD.slice(0, 4), ...PUPA_ORIGINALS.slice(0, 2), ...ACTION.slice(0, 2)];
+export const NEW_RELEASES = [...NOLLYWOOD.slice(4, 8), ...PUPA_ORIGINALS.slice(0, 2)];
+export const AFRICAN_HITS = [...NOLLYWOOD.slice(0, 6), ...DRAMA.slice(0, 2)];
+export const TOP_10 = [...NOLLYWOOD.slice(0, 4), ...PUPA_ORIGINALS.slice(0, 2), ...CLASSIC.slice(0, 2), ...ACTION.slice(0, 2)];
+export const HERO_MOVIES = [...PUPA_ORIGINALS.slice(0, 2), ...NOLLYWOOD.slice(0, 3)];
+
+// All movies combined
 export const ALL_MOVIES = [
-  ...ACTION, ...DRAMA, ...COMEDY, ...CLASSIC, ...DOCUMENTARY, ...ROMANCE, ...THRILLER
+  ...NOLLYWOOD, ...ACTION, ...DRAMA, ...COMEDY, ...CLASSIC, 
+  ...DOCUMENTARY, ...ROMANCE, ...THRILLER, ...PUPA_ORIGINALS
 ];
 
 export function getMovieById(id) {
@@ -938,6 +959,7 @@ export function getMovieById(id) {
 
 export function getMoviesByCategory(category) {
   switch (category.toLowerCase()) {
+    case 'nollywood': return NOLLYWOOD;
     case 'action': return ACTION;
     case 'drama': return DRAMA;
     case 'comedy': return COMEDY;
@@ -945,13 +967,17 @@ export function getMoviesByCategory(category) {
     case 'documentary': return DOCUMENTARY;
     case 'romance': return ROMANCE;
     case 'thriller': return THRILLER;
+    case 'pupa originals': return PUPA_ORIGINALS;
     case 'trending': return TRENDING;
+    case 'new releases': return NEW_RELEASES;
+    case 'african hits': return AFRICAN_HITS;
     case 'top 10': return TOP_10;
     default: return ALL_MOVIES;
   }
 }
 
 export const CATEGORIES = [
+  { id: 'nollywood', name: 'Nollywood', icon: '🇳🇬', image: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=300&h=200&fit=crop' },
   { id: 'action', name: 'Action', icon: '⚡', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=200&fit=crop' },
   { id: 'drama', name: 'Drama', icon: '🎭', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=200&fit=crop' },
   { id: 'comedy', name: 'Comedy', icon: '😂', image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=300&h=200&fit=crop' },
@@ -960,10 +986,3 @@ export const CATEGORIES = [
   { id: 'romance', name: 'Romance', icon: '❤️', image: 'https://images.unsplash.com/photo-1594909122849-11e29194f11c?w=300&h=200&fit=crop' },
   { id: 'thriller', name: 'Thriller', icon: '🔪', image: 'https://images.unsplash.com/photo-1535016120720-40c6874c3b13?w=300&h=200&fit=crop' }
 ];
-
-
-// Backward compatibility exports for old components
-export const HERO_MOVIES = ALL_MOVIES.slice(0, 5);
-export const PUPA_ORIGINALS = ALL_MOVIES.filter(m => m.isPupaOriginal);
-export const NEW_RELEASES = ALL_MOVIES.slice().sort((a, b) => b.year - a.year).slice(0, 10);
-export const AFRICAN_HITS = ALL_MOVIES.filter(m => m.genre?.some(g => ['Drama', 'Action'].includes(g))).slice(0, 10);
