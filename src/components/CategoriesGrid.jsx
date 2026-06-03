@@ -1,6 +1,6 @@
 import React from 'react';
-import { getMoviesByCategory } from '../movies';
-import { Play, Clock, Star } from 'lucide-react';
+import { getMoviesByCategory } from '../movies.js';
+import { Play, Star } from 'lucide-react';
 
 export default function CategoriesGrid({ onMovieSelect, onCategorySelect }) {
   const categories = [
