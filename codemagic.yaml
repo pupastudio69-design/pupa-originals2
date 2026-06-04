@@ -8,6 +8,7 @@ workflows:
         - flutterwave_keys
       vars:
         NODE_VERSION: 20
+        JAVA_HOME: /Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home
     cache:
       cache_paths:
         - $CM_BUILD_DIR/node_modules
@@ -19,6 +20,12 @@ workflows:
           include: true
           source: true
     scripts:
+      - name: Set up Java 21
+        script: |
+          brew install --cask zulu@21
+          export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home
+          export PATH=$JAVA_HOME/bin:$PATH
+          java -version
       - name: Install dependencies
         script: |
           npm install
@@ -30,6 +37,8 @@ workflows:
           npx cap sync android
       - name: Build APK
         script: |
+          export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home
+          export PATH=$JAVA_HOME/bin:$PATH
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
