@@ -17,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
+import WelcomePage from './pages/WelcomePage';
 
 // Initialize Firebase Messaging
 let messaging = null;
@@ -24,6 +25,20 @@ try {
   messaging = getMessaging(app);
 } catch (err) {
   console.log('Firebase Messaging not available:', err);
+}
+
+// Check if user has active subscription or trial
+function hasActiveSubscription() {
+  const sub = localStorage.getItem('pupa_subscription');
+  if (!sub) return false;
+  try {
+    const data = JSON.parse(sub);
+    const now = new Date();
+    const expiry = new Date(data.expiryDate);
+    return expiry > now;
+  } catch {
+    return false;
+  }
 }
 
 function MainLayout() {
@@ -34,6 +49,13 @@ function MainLayout() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Redirect to welcome if no active subscription
+  useEffect(() => {
+    if (user && !hasActiveSubscription() && location.pathname !== '/welcome') {
+      navigate('/welcome');
+    }
+  }, [user, location.pathname, navigate]);
 
   // Sync active tab with URL
   useEffect(() => {
@@ -93,8 +115,9 @@ function MainLayout() {
     setShowTerms(false);
   };
 
-  // Don't show navbar on movie detail pages
+  // Don't show navbar on movie detail pages or welcome page
   const isMoviePage = location.pathname.startsWith('/movie/');
+  const isWelcomePage = location.pathname === '/welcome';
 
   if (showTerms) {
     return (
@@ -128,7 +151,7 @@ function MainLayout() {
         />
       )}
 
-      {!isMoviePage && <TopNavbar onSearchOpen={() => setSearchOpen(true)} />}
+      {!isMoviePage && !isWelcomePage && <TopNavbar onSearchOpen={() => setSearchOpen(true)} />}
 
       <main>
         <Routes>
@@ -141,7 +164,7 @@ function MainLayout() {
         </Routes>
       </main>
 
-      {!isMoviePage && <BottomNavbar active={activeTab} onChange={handleTabChange} />}
+      {!isMoviePage && !isWelcomePage && <BottomNavbar active={activeTab} onChange={handleTabChange} />}
     </div>
   );
 }
@@ -178,6 +201,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/welcome" element={
+            <AuthGuard>
+              <WelcomePage />
+            </AuthGuard>
+          } />
           <Route
             path="/*"
             element={
