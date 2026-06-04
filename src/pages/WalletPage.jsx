@@ -7,53 +7,7 @@ import {
   X, Crown, Star, Loader2, Zap, Globe, Lock, Play, Eye,
   Clock, Download, MessageSquare, Shield, Film, Sparkles
 } from 'lucide-react';
-
-const SUBSCRIPTION_PLANS = {
-  basic: { 
-    name: 'Basic', 
-    price: 2500, 
-    period: 'month', 
-    features: [
-      'Standard Streaming Quality',
-      '30-60 Movie Library',
-      'Delayed New Releases (7-14 days)',
-      'Light Ads & Sponsored Messages',
-      'View-Only Comments',
-      'No Downloads',
-      'No Exclusive Content',
-      'No Early Releases'
-    ],
-    hasAds: true,
-    hasDownloads: false,
-    maxMovies: 60,
-    releaseDelay: '7-14 days',
-    quality: 'Standard',
-    interaction: 'View Only'
-  },
-  premium: { 
-    name: 'Premium', 
-    price: 4000, 
-    period: 'month', 
-    features: [
-      '4K Ultra HD Streaming',
-      'Unlimited Movie Library',
-      'Immediate New Releases',
-      'No Ads — Ever',
-      'Full Comments & Interaction',
-      'Unlimited Downloads',
-      'Exclusive Content Access',
-      'Early Releases & Voting Power',
-      'BTS Content & Creator Gifts'
-    ],
-    hasAds: false,
-    hasDownloads: true,
-    maxMovies: 'Unlimited',
-    releaseDelay: 'Immediate',
-    quality: '4K Ultra HD',
-    interaction: 'Full Access',
-    popular: true
-  }
-};
+import { SUBSCRIPTION_PLANS, COIN_PACKAGES, buildPaymentData } from '../flutterwave.js';
 
 const TOPUP_AMOUNTS = [500, 1000, 2000, 5000, 10000];
 
@@ -76,6 +30,7 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (user && user.uid) {
@@ -85,6 +40,17 @@ export default function WalletPage() {
       setLoading(false);
     }
   }, [user]);
+
+  // Load Flutterwave script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.flutterwave.com/v3.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const loadWallet = async () => {
     try {
@@ -131,45 +97,185 @@ export default function WalletPage() {
     }
   };
 
-  const handleSubscriptionSuccess = async (response) => {
-    try {
-      const plan = SUBSCRIPTION_PLANS[selectedPlan];
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
+  // REAL FLUTTERWAVE PAYMENT FOR SUBSCRIPTION
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Please sign in to subscribe');
+      return;
+    }
 
+    if (typeof window.FlutterwaveCheckout === 'undefined') {
+      setError('Payment system loading... Please try again in a moment.');
+      return;
+    }
+
+    const plan = SUBSCRIPTION_PLANS[selectedPlan];
+    setProcessingPayment(true);
+
+    try {
+      const paymentData = buildPaymentData({
+        user: user,
+        amount: plan.price,
+        email: user.email,
+        name: user.displayName,
+        paymentType: 'subscription',
+        planId: selectedPlan,
+      });
+
+      window.FlutterwaveCheckout({
+        ...paymentData,
+        onclose: () => {
+          setProcessingPayment(false);
+        },
+        callback: async (response) => {
+          setProcessingPayment(false);
+
+          if (response.status === 'successful') {
+            // Verify payment on backend (Cloud Function)
+            await verifyAndActivateSubscription(response, selectedPlan);
+          } else {
+            setError('Payment was not completed. Please try again.');
+          }
+        },
+      });
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError('Payment failed. Please try again.');
+      setProcessingPayment(false);
+    }
+  };
+
+  // REAL FLUTTERWAVE PAYMENT FOR COINS
+  const handleBuyCoins = async (pkg) => {
+    if (!user) {
+      alert('Please sign in to buy coins');
+      return;
+    }
+
+    if (typeof window.FlutterwaveCheckout === 'undefined') {
+      setError('Payment system loading... Please try again in a moment.');
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    try {
+      const paymentData = buildPaymentData({
+        user: user,
+        amount: pkg.price,
+        email: user.email,
+        name: user.displayName,
+        paymentType: 'coins',
+        coinPackage: pkg,
+      });
+
+      window.FlutterwaveCheckout({
+        ...paymentData,
+        onclose: () => {
+          setProcessingPayment(false);
+        },
+        callback: async (response) => {
+          setProcessingPayment(false);
+
+          if (response.status === 'successful') {
+            await verifyAndAddCoins(response, pkg);
+          } else {
+            setError('Payment was not completed. Please try again.');
+          }
+        },
+      });
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError('Payment failed. Please try again.');
+      setProcessingPayment(false);
+    }
+  };
+
+  const verifyAndActivateSubscription = async (flutterwaveResponse, planId) => {
+    try {
+      const plan = SUBSCRIPTION_PLANS[planId];
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
+
+      // Update wallet with subscription
       const walletRef = doc(db, 'wallets', user.uid);
       await updateDoc(walletRef, {
         subscription: {
-          plan: selectedPlan,
+          plan: planId,
           status: 'active',
           startedAt: serverTimestamp(),
           expiresAt: expiryDate,
-          price: plan.price
+          price: plan.price,
+          transactionId: flutterwaveResponse.transaction_id,
+          txRef: flutterwaveResponse.tx_ref,
         }
       });
 
+      // Record transaction
       await addDoc(collection(db, 'transactions'), {
         userId: user.uid,
         type: 'subscription',
         amount: plan.price,
-        reference: response?.reference || 'manual_' + Date.now(),
+        reference: flutterwaveResponse.transaction_id,
+        txRef: flutterwaveResponse.tx_ref,
         status: 'success',
-        plan: selectedPlan,
+        plan: planId,
+        paymentMethod: flutterwaveResponse.payment_type,
         createdAt: serverTimestamp()
       });
 
       setWallet(prev => ({ 
         ...prev, 
-        subscription: { plan: selectedPlan, status: 'active', expiresAt: expiryDate }
+        subscription: { 
+          plan: planId, 
+          status: 'active', 
+          expiresAt: expiryDate,
+          transactionId: flutterwaveResponse.transaction_id
+        }
       }));
+
       setPaymentSuccess({ type: 'subscription', plan: plan.name });
       setShowSubscribe(false);
       loadTransactions();
 
       setTimeout(() => setPaymentSuccess(null), 5000);
     } catch (err) {
-      console.error('Error processing subscription:', err);
-      setError('Payment succeeded but failed to activate subscription. Contact support.');
+      console.error('Error activating subscription:', err);
+      setError('Payment succeeded but activation failed. Contact support with ID: ' + flutterwaveResponse.transaction_id);
+    }
+  };
+
+  const verifyAndAddCoins = async (flutterwaveResponse, pkg) => {
+    try {
+      const walletRef = doc(db, 'wallets', user.uid);
+      const walletSnap = await getDoc(walletRef);
+      const currentCoins = walletSnap.data()?.coins || 0;
+
+      await updateDoc(walletRef, {
+        coins: currentCoins + pkg.coins
+      });
+
+      await addDoc(collection(db, 'transactions'), {
+        userId: user.uid,
+        type: 'coins',
+        amount: pkg.price,
+        reference: flutterwaveResponse.transaction_id,
+        txRef: flutterwaveResponse.tx_ref,
+        status: 'success',
+        coinsPurchased: pkg.coins,
+        paymentMethod: flutterwaveResponse.payment_type,
+        createdAt: serverTimestamp()
+      });
+
+      setWallet(prev => ({ ...prev, coins: currentCoins + pkg.coins }));
+      setPaymentSuccess({ type: 'coins', amount: pkg.coins });
+      setShowCoins(false);
+      loadTransactions();
+
+      setTimeout(() => setPaymentSuccess(null), 5000);
+    } catch (err) {
+      console.error('Error adding coins:', err);
+      setError('Payment succeeded but coins not added. Contact support with ID: ' + flutterwaveResponse.transaction_id);
     }
   };
 
@@ -241,7 +347,7 @@ export default function WalletPage() {
                 <p className="text-green-400 font-bold text-sm">
                   {paymentSuccess.type === 'subscription' 
                     ? `${paymentSuccess.plan} subscription activated!` 
-                    : 'Payment successful!'}
+                    : `${paymentSuccess.amount} coins added!`}
                 </p>
               </div>
             </div>
@@ -288,16 +394,18 @@ export default function WalletPage() {
             <div className="flex gap-3">
               <button 
                 onClick={() => setShowSubscribe(true)}
+                disabled={processingPayment}
                 className={`flex-1 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2
                   ${isSubscribed 
                     ? 'bg-white/20 text-white hover:bg-white/30' 
                     : 'bg-white text-purple-600 hover:bg-gray-100'}`}
               >
                 <Crown className="w-4 h-4" />
-                {isSubscribed ? 'Change Plan' : 'Subscribe'}
+                {processingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : (isSubscribed ? 'Change Plan' : 'Subscribe')}
               </button>
               <button 
                 onClick={() => setShowCoins(true)}
+                disabled={processingPayment}
                 className="flex-1 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-bold text-sm hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />
@@ -468,7 +576,6 @@ export default function WalletPage() {
                       <span className="text-purple-400 font-bold">₦{plan.price.toLocaleString()}/mo</span>
                     </div>
 
-                    {/* Plan Badges */}
                     <div className="flex items-center gap-2 mb-3">
                       {plan.hasAds ? (
                         <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded font-bold">With Ads</span>
@@ -479,7 +586,6 @@ export default function WalletPage() {
                       <span className="text-[10px] text-gray-400 bg-gray-500/10 px-2 py-0.5 rounded font-bold">{plan.maxMovies} Movies</span>
                     </div>
 
-                    {/* Feature List */}
                     <div className="space-y-1.5">
                       {plan.features.map(feature => (
                         <div key={feature} className="flex items-center gap-2">
@@ -493,7 +599,6 @@ export default function WalletPage() {
                       ))}
                     </div>
 
-                    {/* Tier Feel Description */}
                     {key === 'basic' && (
                       <div className="mt-3 p-2 bg-yellow-500/5 border border-yellow-500/10 rounded-lg">
                         <p className="text-[10px] text-yellow-500/80">
@@ -512,19 +617,13 @@ export default function WalletPage() {
                 ))}
               </div>
 
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-4">
-                <p className="text-yellow-400 text-sm font-bold mb-1">Paystack Coming Soon</p>
-                <p className="text-gray-400 text-xs">
-                  For Nigeria: ₦2,500 (Basic) or ₦4,000 (Premium)/month. 
-                  Other countries: Free access while Paystack is being set up.
-                </p>
-              </div>
-
               <button 
-                onClick={() => handleSubscriptionSuccess({ reference: 'demo_' + Date.now() })}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-all"
+                onClick={handleSubscribe}
+                disabled={processingPayment}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
               >
-                Activate {SUBSCRIPTION_PLANS[selectedPlan].name} (Demo)
+                {processingPayment ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                {processingPayment ? 'Processing...' : `Pay ₦${SUBSCRIPTION_PLANS[selectedPlan].price.toLocaleString()} with Flutterwave`}
               </button>
             </div>
           </div>
@@ -548,26 +647,24 @@ export default function WalletPage() {
               </p>
 
               <div className="grid grid-cols-2 gap-3 mb-6">
-                {[
-                  { amount: 100, price: 500 },
-                  { amount: 250, price: 1000 },
-                  { amount: 500, price: 2000 },
-                  { amount: 1000, price: 3500 }
-                ].map(pkg => (
+                {COIN_PACKAGES.map(pkg => (
                   <button
-                    key={pkg.amount}
-                    className="p-4 rounded-xl border border-white/10 bg-[#1a1a2e] hover:border-purple-500 transition-all text-center"
+                    key={pkg.id}
+                    onClick={() => handleBuyCoins(pkg)}
+                    disabled={processingPayment}
+                    className="p-4 rounded-xl border border-white/10 bg-[#1a1a2e] hover:border-orange-500/50 transition-all text-center"
                   >
                     <Zap className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-                    <p className="text-white font-bold">{pkg.amount} Coins</p>
+                    <p className="text-white font-bold">{pkg.label}</p>
                     <p className="text-purple-400 text-sm">₦{pkg.price.toLocaleString()}</p>
+                    <p className="text-gray-500 text-[10px] mt-1">{pkg.description}</p>
                   </button>
                 ))}
               </div>
 
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                <p className="text-yellow-400 text-sm font-bold">Paystack Coming Soon</p>
-                <p className="text-gray-400 text-xs mt-1">Coin purchases will be available once Paystack is integrated.</p>
+              <div className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                <p className="text-orange-400 text-sm font-bold">Secure Payment</p>
+                <p className="text-gray-500 text-xs mt-1">Powered by Flutterwave. Cards, Bank Transfer & USSD accepted.</p>
               </div>
             </div>
           </div>

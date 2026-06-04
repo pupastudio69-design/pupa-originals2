@@ -145,16 +145,9 @@ function MainLayout() {
   );
 }
 
-function AuthWrapper({ children }) {
+function AuthGuard({ children }) {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    if (!loading && !user && location.pathname !== '/login' && location.pathname !== '/signup') {
-      navigate('/login');
-    }
-  }, [user, loading, location.pathname, navigate]);
 
   if (loading) {
     return (
@@ -162,6 +155,10 @@ function AuthWrapper({ children }) {
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (!user && location.pathname !== '/login' && location.pathname !== '/signup') {
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -183,9 +180,9 @@ export default function App() {
           <Route
             path="/*"
             element={
-              <AuthWrapper>
+              <AuthGuard>
                 <MainLayout />
-              </AuthWrapper>
+              </AuthGuard>
             }
           />
         </Routes>
