@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  isSignInWithEmailLink,
+  signInWithEmailLink
+} from 'firebase/auth';
 import { auth } from '../../firebase';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Chrome } from 'lucide-react';
 
@@ -10,24 +16,55 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [autoLoginMessage, setAutoLoginMessage] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Handle email link auto-login
+  useEffect(() => {
+    const handleEmailLink = async () => {
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        setAutoLoginMessage('Verifying your email and logging you in...');
+        setLoading(true);
+
+        let emailFromStorage = window.localStorage.getItem('emailForSignIn');
+
+        // If no email in storage, try from URL params
+        if (!emailFromStorage) {
+          emailFromStorage = searchParams.get('email');
+        }
+
+        if (!emailFromStorage) {
+          setError('Please provide your email for confirmation.');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          await signInWithEmailLink(auth, emailFromStorage, window.location.href);
+          window.localStorage.removeItem('emailForSignIn');
+          setAutoLoginMessage('Email verified! Logging you in...');
+
+          // Small delay to show message, then redirect
+          setTimeout(() => {
+            navigate('/');
+          }, 1500);
+        } catch (err) {
+          setError('Failed to verify email. Please try logging in manually.');
+          setLoading(false);
+        }
+      }
+    };
+
+    handleEmailLink();
+  }, [navigate, searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Check if email is verified
-      if (!user.emailVerified) {
-        setError('Please verify your email first. Check your inbox for the verification link.');
-        setLoading(false);
-        return;
-      }
-
-      // Email is verified - let them in!
+      await signInWithEmailAndPassword(auth, email, password);
       navigate('/');
     } catch (err) {
       setError(getErrorMessage(err.code));
@@ -64,6 +101,13 @@ export default function LoginPage() {
           <h1 className="font-display text-3xl font-bold text-white mb-2">Pupa Originals</h1>
           <p className="text-gray-400 text-sm font-body">Welcome back</p>
         </div>
+
+        {/* Auto-login message */}
+        {autoLoginMessage && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-4">
+            <p className="text-emerald-400 text-xs font-body">{autoLoginMessage}</p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-4">
@@ -122,7 +166,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-white/10" />
           <span className="text-gray-500 text-xs font-body">or</span>
-          <div className="flex-1 h-px bg-white/10" />
+          <div class1="flex-1 h-px bg-white/10" />
         </div>
 
         <button

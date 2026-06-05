@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, sendEmailVerification } from 'firebase/auth';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  updateProfile, 
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink
+} from 'firebase/auth';
 import { auth } from '../../firebase';
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, Chrome } from 'lucide-react';
 
@@ -33,16 +41,24 @@ export default function SignUpPage() {
     try {
       // 1. Create the user account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       // 2. Save their name
       await updateProfile(userCredential.user, { displayName: name });
-      
-      // 3. Send verification email
-      await sendEmailVerification(userCredential.user);
-      
-      // 4. Show success message
-      setSuccessMessage('Account created! Please check your email and click the verification link before logging in.');
-      
+
+      // 3. Send email verification link that auto-logs in
+      const actionCodeSettings = {
+        url: window.location.origin + '/login?verified=true&email=' + encodeURIComponent(email),
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+
+      // 4. Save email locally so we can complete sign-in after they click the link
+      window.localStorage.setItem('emailForSignIn', email);
+
+      // 5. Show success message
+      setSuccessMessage('Account created! Please check your email and click the verification link to automatically log in.');
+
     } catch (err) {
       setError(getErrorMessage(err.code));
     }
@@ -81,12 +97,9 @@ export default function SignUpPage() {
         {successMessage && (
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-4">
             <p className="text-emerald-400 text-xs font-body">{successMessage}</p>
-            <button 
-              onClick={() => navigate('/login')}
-              className="text-emerald-400 text-xs font-body underline mt-2 hover:text-emerald-300"
-            >
-              Go to Login
-            </button>
+            <p className="text-gray-400 text-xs font-body mt-2">
+              After clicking the link in your email, you will be automatically logged in.
+            </p>
           </div>
         )}
 
