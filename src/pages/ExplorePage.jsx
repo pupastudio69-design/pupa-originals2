@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Film, Clock, Star, TrendingUp } from 'lucide-react';
-import { movies } from '../data/movies';
+import { ALL_MOVIES as movies } from '../data/movies';
 
 const CATEGORIES = [
   { id: 'all', name: 'All Movies', icon: Film },
