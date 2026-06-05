@@ -70,7 +70,7 @@ export const COIN_PACKAGES = [
   { id: 'coins-1000', coins: 1000, price: 3500, label: '1000 Coins', description: 'Mega gift' }
 ];
 
-// Payment metadata builder
+// Payment metadata builder — CARD ONLY
 export const buildPaymentData = ({
   user,
   amount,
@@ -90,7 +90,7 @@ export const buildPaymentData = ({
     tx_ref: txRef,
     amount: amount,
     currency: 'NGN',
-    payment_options: 'card,ussd,banktransfer,mpesa',
+    payment_options: 'card', // ONLY CARD — no USSD, bank transfer, or MPesa
     customer: {
       email: email || user?.email || 'guest@pupaoriginals.com',
       phone_number: phone || user?.phoneNumber || '',
@@ -98,8 +98,8 @@ export const buildPaymentData = ({
     },
     customizations: {
       title: paymentType === 'subscription' ? 'Pupa Originals Subscription' : 'Pupa Originals Coins',
-      description: paymentType === 'subscription'
-        ? `Subscribe to ${planId} plan`
+      description: paymentType === 'subscription' 
+        ? `Subscribe to ${planId} plan` 
         : `Purchase ${coinPackage?.label}`,
       logo: 'https://pupaoriginals.com/logo.png',
     },
