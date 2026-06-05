@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Bell, ArrowLeft, Wifi, Clock, Film } from 'lucide-react';
+import { Download, Bell, ArrowLeft, Wifi, Check } from 'lucide-react';
 
 export default function DownloadsPage() {
   const navigate = useNavigate();
+  const [notified, setNotified] = useState(() => {
+    return localStorage.getItem('pupa_downloads_notify') === 'true';
+  });
+
+  const handleNotify = () => {
+    localStorage.setItem('pupa_downloads_notify', 'true');
+    setNotified(true);
+    // In production: save to Firestore under user profile
+    console.log('User wants to be notified about downloads');
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] flex flex-col items-center justify-center px-6 pb-24">
@@ -31,7 +41,7 @@ export default function DownloadsPage() {
               </div>
               <div className="text-left">
                 <p className="text-white text-sm">Basic Plan</p>
-                <p className="text-gray-500 text-xs">Limited downloads</p>
+                <p className="text-gray-500 text-xs">Limited downloads (5 movies)</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -47,10 +57,20 @@ export default function DownloadsPage() {
         </div>
 
         {/* Notify Button */}
-        <button className="w-full py-3.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 mb-4">
-          <Bell className="w-5 h-5" />
-          Notify Me When Available
-        </button>
+        {notified ? (
+          <div className="w-full py-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold flex items-center justify-center gap-2 mb-4">
+            <Check className="w-5 h-5" />
+            We will notify you!
+          </div>
+        ) : (
+          <button 
+            onClick={handleNotify}
+            className="w-full py-3.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 mb-4"
+          >
+            <Bell className="w-5 h-5" />
+            Notify Me When Available
+          </button>
+        )}
 
         {/* Back Button */}
         <button 

@@ -6,7 +6,7 @@ import { auth, storage } from '../firebase';
 import {
   User, Settings, Crown, ChevronRight, LogOut, Camera, Mail,
   Star, Clock, Gift, Download, Wallet, HelpCircle, FileText,
-  Shield, Globe, Bell, X
+  Shield, Bell, X, Edit3, Check, MessageSquare, ThumbsUp, AlertTriangle
 } from 'lucide-react';
 
 // Settings Overlay
@@ -57,6 +57,150 @@ function SettingsOverlay({ onClose }) {
   );
 }
 
+// Edit Profile Overlay
+function EditProfileOverlay({ user, onClose, onUpdate }) {
+  const [name, setName] = useState(user?.displayName || '');
+  const [bio, setBio] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await updateProfile(user, { displayName: name.trim() });
+      onUpdate(name.trim());
+      onClose();
+    } catch (err) {
+      console.error('Update error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
+      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
+        <h2 className="text-white text-lg font-semibold">Edit Profile</h2>
+        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="mb-4">
+          <label className="text-gray-500 text-xs uppercase tracking-wider mb-2 block">Display Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="text-gray-500 text-xs uppercase tracking-wider mb-2 block">Bio (Coming Soon)</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Tell us about yourself..."
+            disabled
+            className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 text-sm resize-none opacity-50"
+            rows={3}
+          />
+          <p className="text-gray-600 text-xs mt-1">Bio editing will be available in a future update</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving || !name.trim()}
+          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Feedback Overlay
+function FeedbackOverlay({ onClose }) {
+  const [feedback, setFeedback] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    if (!feedback.trim()) return;
+    // In production: save to Firestore
+    console.log('Feedback submitted:', feedback);
+    setSubmitted(true);
+    setTimeout(() => { setSubmitted(false); onClose(); }, 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
+      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
+        <h2 className="text-white text-lg font-semibold">Feedback & Suggestions</h2>
+        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {!submitted ? (
+          <>
+            <p className="text-gray-400 text-sm mb-4">Help us improve Pupa Originals. Your feedback matters.</p>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="What do you like? What should we improve?"
+              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500 resize-none mb-4"
+              rows={6}
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={!feedback.trim()}
+              className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-50"
+            >
+              Submit Feedback
+            </button>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <ThumbsUp className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+            <p className="text-white font-bold">Thank you!</p>
+            <p className="text-gray-400 text-sm">Your feedback has been received.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Help Overlay
+function HelpOverlay({ onClose }) {
+  const faqs = [
+    { q: 'How do I start my free trial?', a: 'Sign up and select any plan. Your 1-day free trial starts immediately.' },
+    { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel anytime from your Profile > Membership.' },
+    { q: 'What is included in Premium?', a: '4K streaming, unlimited downloads, no ads, and exclusive content.' },
+    { q: 'How do I download movies?', a: 'Downloads are coming soon. We will notify you when available.' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
+      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
+        <h2 className="text-white text-lg font-semibold">Help & Support</h2>
+        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="space-y-3">
+          {faqs.map((faq, i) => (
+            <div key={i} className="p-4 rounded-xl bg-white/5">
+              <p className="text-white text-sm font-medium mb-1">{faq.q}</p>
+              <p className="text-gray-400 text-xs">{faq.a}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <p className="text-emerald-400 text-sm font-medium mb-1">Need more help?</p>
+          <p className="text-gray-400 text-xs">Contact us at support@pupaoriginals.com</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilePage({ onTermsClick }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
@@ -64,24 +208,25 @@ export default function ProfilePage({ onTermsClick }) {
   const [activeOverlay, setActiveOverlay] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [displayName, setDisplayName] = useState('');
 
-  // Get subscription status from localStorage
+  // Get subscription status
   const getSubscription = () => {
     const sub = localStorage.getItem('pupa_subscription');
     if (!sub) return null;
-    try {
-      return JSON.parse(sub);
-    } catch { return null; }
+    try { return JSON.parse(sub); } catch { return null; }
   };
 
   const subscription = getSubscription();
   const isPremium = subscription?.plan === 'premium';
   const isTrial = subscription?.status === 'trial';
+  const isBasic = subscription?.plan === 'basic' && !isTrial;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       if (user?.photoURL) setProfileImage(user.photoURL);
+      if (user?.displayName) setDisplayName(user.displayName);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -117,28 +262,24 @@ export default function ProfilePage({ onTermsClick }) {
     }
   };
 
-  const getUserName = () => {
-    if (!currentUser) return 'Guest';
-    return currentUser.displayName || currentUser.email?.split('@')[0] || 'Pupa Member';
-  };
-
+  const getUserName = () => displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Pupa Member';
   const getAvatarLetter = () => getUserName().charAt(0).toUpperCase();
 
-  // Membership badge component
+  // Thick PUPA-style membership badge
   const MembershipBadge = () => {
     if (!subscription) return null;
-    if (isPremium) {
+    if (isPremium || isTrial) {
       return (
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/15 border border-yellow-500/30">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/15 border-2 border-yellow-500/40">
           <Crown size={14} className="text-yellow-400" />
-          <span className="text-yellow-400 text-xs font-bold">GOLD MEMBER</span>
+          <span className="text-yellow-400 text-xs font-black tracking-wider">GOLD PUPA</span>
         </div>
       );
     }
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-500/15 border border-gray-500/30">
+      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-500/15 border-2 border-gray-500/40">
         <Star size={14} className="text-gray-400" />
-        <span className="text-gray-400 text-xs font-bold">SILVER MEMBER</span>
+        <span className="text-gray-400 text-xs font-black tracking-wider">SILVER PUPA</span>
       </div>
     );
   };
@@ -147,8 +288,18 @@ export default function ProfilePage({ onTermsClick }) {
     {
       title: 'Account',
       items: [
-        { icon: User, label: 'Edit Profile', sub: 'Name, photo, bio', onClick: () => {} },
-        { icon: Mail, label: 'Email', sub: currentUser?.email || 'Not set', onClick: () => {} },
+        { 
+          icon: User, 
+          label: 'Edit Profile', 
+          sub: 'Name, photo, bio', 
+          onClick: () => setActiveOverlay('editProfile')
+        },
+        { 
+          icon: Mail, 
+          label: 'Email', 
+          sub: currentUser?.email || 'Not set', 
+          onClick: () => {}
+        },
       ]
     },
     {
@@ -186,10 +337,30 @@ export default function ProfilePage({ onTermsClick }) {
     {
       title: 'Support',
       items: [
-        { icon: HelpCircle, label: 'Feedback & Suggestions', sub: 'Help us improve', onClick: () => {} },
-        { icon: HelpCircle, label: 'Help & Support', sub: 'Get assistance', onClick: () => {} },
-        { icon: FileText, label: 'Privacy Policy', sub: 'How we protect your data', onClick: () => {} },
-        { icon: FileText, label: 'Terms & Conditions', sub: 'Legal information', onClick: () => onTermsClick?.() },
+        { 
+          icon: MessageSquare, 
+          label: 'Feedback & Suggestions', 
+          sub: 'Help us improve', 
+          onClick: () => setActiveOverlay('feedback')
+        },
+        { 
+          icon: HelpCircle, 
+          label: 'Help & Support', 
+          sub: 'Get assistance', 
+          onClick: () => setActiveOverlay('help')
+        },
+        { 
+          icon: FileText, 
+          label: 'Privacy Policy', 
+          sub: 'How we protect your data', 
+          onClick: () => {}
+        },
+        { 
+          icon: FileText, 
+          label: 'Terms & Conditions', 
+          sub: 'Legal information', 
+          onClick: () => onTermsClick?.()
+        },
       ]
     },
   ];
@@ -204,7 +375,17 @@ export default function ProfilePage({ onTermsClick }) {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] pt-16 pb-24">
+      {/* Overlays */}
       {activeOverlay === 'settings' && <SettingsOverlay onClose={() => setActiveOverlay(null)} />}
+      {activeOverlay === 'editProfile' && (
+        <EditProfileOverlay 
+          user={currentUser} 
+          onClose={() => setActiveOverlay(null)} 
+          onUpdate={(name) => setDisplayName(name)}
+        />
+      )}
+      {activeOverlay === 'feedback' && <FeedbackOverlay onClose={() => setActiveOverlay(null)} />}
+      {activeOverlay === 'help' && <HelpOverlay onClose={() => setActiveOverlay(null)} />}
 
       <div className="px-5 pt-4">
         {/* Profile Header */}
@@ -213,11 +394,7 @@ export default function ProfilePage({ onTermsClick }) {
             {/* Avatar */}
             <div className="relative">
               {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
-                  className="w-20 h-20 rounded-full object-cover border-2 border-emerald-500/40"
-                />
+                <img src={profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-500/40" />
               ) : (
                 <div className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl text-white bg-gradient-to-br from-emerald-500 to-emerald-800">
                   {getAvatarLetter()}
@@ -238,7 +415,7 @@ export default function ProfilePage({ onTermsClick }) {
             </div>
           </div>
 
-          {/* Subscription Status Card */}
+          {/* Subscription Status */}
           <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
@@ -246,7 +423,7 @@ export default function ProfilePage({ onTermsClick }) {
                   {isPremium ? 'Premium Active' : isTrial ? 'Free Trial (1 Day)' : 'Basic Plan'}
                 </p>
                 <p className="text-gray-500 text-xs">
-                  {isPremium ? 'Unlimited access' : isTrial ? 'Expires in 24 hours' : 'Limited access'}
+                  {isPremium ? 'Unlimited access to all content' : isTrial ? 'Full access for 24 hours' : 'Limited access - Upgrade for more'}
                 </p>
               </div>
               {!isPremium && (
@@ -254,10 +431,17 @@ export default function ProfilePage({ onTermsClick }) {
                   onClick={() => navigate('/welcome')}
                   className="px-3 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold"
                 >
-                  Upgrade
+                  {isTrial ? 'Upgrade' : 'Subscribe'}
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Upcoming Features Notice */}
+          <div className="mt-3 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <p className="text-blue-400 text-xs">
+              <span className="font-bold">Coming Soon:</span> Comments, downloads, wallet, and rewards. Stay tuned!
+            </p>
           </div>
         </div>
 
