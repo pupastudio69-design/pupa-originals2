@@ -265,22 +265,26 @@ export default function ProfilePage({ onTermsClick }) {
   const getUserName = () => displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Pupa Member';
   const getAvatarLetter = () => getUserName().charAt(0).toUpperCase();
 
-  // Thick PUPA-style membership badge
+  // Small checkmark badge next to name like X/Twitter verification
   const MembershipBadge = () => {
     if (!subscription) return null;
     if (isPremium || isTrial) {
       return (
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/15 border-2 border-yellow-500/40">
-          <Crown size={14} className="text-yellow-400" />
-          <span className="text-yellow-400 text-xs font-black tracking-wider">GOLD PUPA</span>
-        </div>
+        <span className="inline-flex items-center ml-1" title="Gold Member">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5"/>
+            <path d="M8 12l3 3 5-6" stroke="#1a1a2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
+        </span>
       );
     }
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-500/15 border-2 border-gray-500/40">
-        <Star size={14} className="text-gray-400" />
-        <span className="text-gray-400 text-xs font-black tracking-wider">SILVER PUPA</span>
-      </div>
+      <span className="inline-flex items-center ml-1" title="Silver Member">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1.5"/>
+          <path d="M8 12l3 3 5-6" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        </svg>
+      </span>
     );
   };
 
@@ -407,8 +411,8 @@ export default function ProfilePage({ onTermsClick }) {
             </div>
 
             <div className="flex-1">
-              <h2 className="font-semibold text-xl text-white mb-1">{getUserName()}</h2>
-              <div className="mb-2">
+              <div className="flex items-center">
+                <h2 className="font-semibold text-xl text-white">{getUserName()}</h2>
                 <MembershipBadge />
               </div>
               <p className="text-gray-400 text-xs">{currentUser?.email || 'Not signed in'}</p>
