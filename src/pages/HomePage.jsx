@@ -1,56 +1,191 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import HeroBanner from '../components/HeroBanner';
-import ContentRow from '../components/ContentRow';
-import CategoriesGrid from '../components/CategoriesGrid';
-import Top10Row from '../components/Top10Row';
+import { Play, Info, Star, Clock, TrendingUp, Crown, ChevronRight } from 'lucide-react';
 import {
-  TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS
+  ALL_MOVIES, TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS, CATEGORIES
 } from '../data/movies.js';
 
 const auth = getAuth();
 const db = getFirestore();
 
 function ContinueWatchingCard({ movie }) {
+  const navigate = useNavigate();
   return (
     <div
+      onClick={() => navigate(`/movie/${movie.id}`)}
       className="flex-shrink-0 cursor-pointer relative group rounded-xl overflow-hidden"
       style={{ width: 160, aspectRatio: '16/9' }}
     >
-      <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover" />
+      <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-        <div
-          className="h-full"
-          style={{
-            width: `${movie.progress || 0}%`,
-            background: 'linear-gradient(90deg, #16a34a, #facc15)',
-          }}
-        />
+        <div className="h-full bg-emerald-500" style={{ width: `${movie.progress || 0}%` }} />
       </div>
-
       <div className="absolute bottom-2 left-2 right-2">
-        <p className="text-white text-[11px] font-body font-medium line-clamp-1">{movie.title}</p>
+        <p className="text-white text-[11px] font-medium truncate">{movie.title}</p>
         <p className="text-gray-400 text-[9px]">{movie.progress || 0}% watched</p>
       </div>
+    </div>
+  );
+}
 
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="w-10 h-10 rounded-full bg-yellow-400/90 flex items-center justify-center">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M3 2l9 5-9 5V2z" fill="black" />
-          </svg>
+function MovieCard({ movie, size = 'normal' }) {
+  const navigate = useNavigate();
+  const isLarge = size === 'large';
+
+  return (
+    <button
+      onClick={() => navigate(`/movie/${movie.id}`)}
+      className="flex-shrink-0 text-left group"
+      style={{ width: isLarge ? 160 : 120 }}
+    >
+      <div className={`relative rounded-xl overflow-hidden mb-2 ${isLarge ? 'aspect-[2/3]' : 'aspect-[2/3]'}`}>
+        <img
+          src={movie.poster}
+          alt={movie.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+          onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450/1a1a2e/ffffff?text=Pupa'; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/50 rounded-full px-1.5 py-0.5">
+          <Star size={10} className="text-yellow-400 fill-yellow-400" />
+          <span className="text-white text-[10px]">{movie.rating || '4.5'}</span>
+        </div>
+      </div>
+      <h3 className="text-white text-xs font-medium truncate">{movie.title}</h3>
+      <p className="text-gray-500 text-[10px]">{movie.year} · {Array.isArray(movie.genre) ? movie.genre[0] : movie.genre}</p>
+    </button>
+  );
+}
+
+function ContentRow({ title, movies, icon: Icon }) {
+  if (!movies || movies.length === 0) return null;
+
+  return (
+    <section className="mb-6">
+      <div className="flex items-center justify-between px-4 mb-3">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon size={16} className="text-emerald-400" />}
+          <h2 className="font-semibold text-white text-sm">{title}</h2>
+        </div>
+      </div>
+      <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+        {movies.map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SubscriptionCard() {
+  const navigate = useNavigate();
+  const sub = localStorage.getItem('pupa_subscription');
+  const subscription = sub ? JSON.parse(sub) : null;
+  const isPremium = subscription?.plan === 'premium';
+  const isTrial = subscription?.status === 'trial';
+
+  if (isPremium) return null;
+
+  return (
+    <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-emerald-900/50 to-yellow-900/20 border border-emerald-500/20">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-yellow-400/20 flex items-center justify-center">
+          <Crown size={20} className="text-yellow-400" />
+        </div>
+        <div className="flex-1">
+          <p className="text-white text-sm font-semibold">
+            {isTrial ? 'Free Trial Active' : 'Upgrade to Premium'}
+          </p>
+          <p className="text-gray-400 text-xs">
+            {isTrial ? 'Expires in 24 hours. Upgrade now to keep watching.' : 'Get unlimited access to all movies'}
+          </p>
+        </div>
+        <button 
+          onClick={() => navigate('/welcome')}
+          className="px-3 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold"
+        >
+          {isTrial ? 'Upgrade' : 'Subscribe'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedBanner() {
+  const navigate = useNavigate();
+  const featured = ALL_MOVIES[Math.floor(Math.random() * ALL_MOVIES.length)];
+
+  return (
+    <div className="relative h-[70vh] w-full overflow-hidden">
+      <img
+        src={featured.poster}
+        alt={featured.title}
+        className="w-full h-full object-cover"
+        onError={(e) => { e.target.src = 'https://via.placeholder.com/800x1200/1a1a2e/ffffff?text=Pupa'; }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/50 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">FEATURED</span>
+          <span className="text-gray-400 text-xs">{featured.year}</span>
+          <span className="text-gray-600 text-xs">•</span>
+          <span className="text-gray-400 text-xs">{Array.isArray(featured.genre) ? featured.genre[0] : featured.genre}</span>
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-2">{featured.title}</h1>
+        <p className="text-gray-300 text-sm mb-4 line-clamp-2 max-w-md">{featured.description}</p>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => navigate(`/movie/${featured.id}`)}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-200 transition-colors"
+          >
+            <Play size={18} fill="black" />
+            Play Now
+          </button>
+          <button 
+            onClick={() => navigate(`/movie/${featured.id}`)}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 text-white font-bold text-sm hover:bg-white/20 transition-colors"
+          >
+            <Info size={18} />
+            More Info
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-export default function HomePage({ onCategoriesOpen }) {
+function CategoriesPreview() {
+  const navigate = useNavigate();
+  return (
+    <section className="mb-6 px-4">
+      <h2 className="font-semibold text-white text-sm mb-3">Browse Categories</h2>
+      <div className="grid grid-cols-2 gap-2">
+        {CATEGORIES.slice(0, 4).map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => navigate('/explore')}
+            className="relative h-20 rounded-xl overflow-hidden group"
+          >
+            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-sm font-bold">{cat.name}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function HomePage() {
   const [continueWatching, setContinueWatching] = useState([]);
-  const [loadingContinue, setLoadingContinue] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -59,115 +194,47 @@ export default function HomePage({ onCategoriesOpen }) {
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
-            const data = userDoc.data();
-            const history = data.watchHistory || [];
-            setContinueWatching(history);
-          } else {
-            setContinueWatching([]);
+            setContinueWatching(userDoc.data().watchHistory || []);
           }
         } catch (err) {
-          console.error('Error loading watch history:', err);
-          setContinueWatching([]);
+          console.error('Error:', err);
         }
-      } else {
-        setContinueWatching([]);
       }
-      setLoadingContinue(false);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  const recentlyAdded = [...TRENDING, ...NEW_RELEASES]
-    .sort((a, b) => (b.year || 0) - (a.year || 0))
-    .slice(0, 10);
-
-  const currentYear = new Date().getFullYear();
-  const comingSoon = [...PUPA_ORIGINALS, ...AFRICAN_HITS]
-    .filter(m => m.year > currentYear || m.comingSoon)
-    .slice(0, 8);
+  const popularMovies = [...TRENDING].sort((a, b) => (b.views || '').replace('M', '000000').replace('K', '000') - (a.views || '').replace('M', '000000').replace('K', '000')).slice(0, 10);
+  const recentlyAdded = [...NEW_RELEASES, ...PUPA_ORIGINALS].slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-pupa-bg pb-24">
-      <HeroBanner />
+    <div className="min-h-screen bg-[#0a0a1a] pb-24">
+      <FeaturedBanner />
 
-      {user && continueWatching.length > 0 && (
-        <section className="mb-8 mt-4">
-          <div className="flex items-center justify-between px-4 mb-3">
-            <h2 className="font-body font-semibold text-white text-base">Continue Watching</h2>
-            <button className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors">See all</button>
-          </div>
-          <div className="scroll-row px-4">
-            {continueWatching.map(m => (
-              <ContinueWatchingCard key={m.id} movie={m} />
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="pt-4">
+        <SubscriptionCard />
 
-      {!user && !loadingContinue && (
-        <section className="mb-8 mt-4 mx-4">
-          <div className="rounded-xl p-4 bg-white/5 border border-white/10 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+        {user && continueWatching.length > 0 && (
+          <section className="mb-6">
+            <div className="flex items-center justify-between px-4 mb-3">
+              <h2 className="font-semibold text-white text-sm">Continue Watching</h2>
             </div>
-            <div className="flex-1">
-              <p className="text-white text-sm font-medium">Sign in to continue watching</p>
-              <p className="text-gray-400 text-xs">Your watch progress will be saved across devices</p>
+            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+              {continueWatching.map(m => (
+                <ContinueWatchingCard key={m.id} movie={m} />
+              ))}
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      <ContentRow title="Trending Now" movies={TRENDING} />
-      <ContentRow title="Recently Added" movies={recentlyAdded} badge="new" />
-      <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} badge="gold" size="lg" />
-      <ContentRow title="New Releases" movies={NEW_RELEASES} badge="new" />
+        <ContentRow title="Popular Movies" movies={popularMovies} icon={TrendingUp} />
+        <ContentRow title="Recently Added" movies={recentlyAdded} icon={Clock} />
+        <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS} icon={Star} />
+        <ContentRow title="African Hits" movies={AFRICAN_HITS} icon={Star} />
 
-      {/* Categories Section */}
-      <section className="mb-8 px-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-body font-semibold text-white text-base">Categories</h2>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onCategoriesOpen();
-            }}
-            className="text-emerald-500 text-xs hover:text-yellow-400 transition-colors px-2 py-1"
-          >
-            See all
-          </button>
-        </div>
-        <CategoriesGrid />
-      </section>
-
-      <ContentRow title="African Hits" movies={AFRICAN_HITS} />
-
-      {comingSoon.length > 0 && (
-        <ContentRow title="Coming Soon" movies={comingSoon} badge="soon" />
-      )}
-
-      <Top10Row />
-
-      <div className="mx-4 mb-8 rounded-2xl p-5 relative overflow-hidden" style={{
-        background: 'linear-gradient(135deg, #064e2a 0%, #0d3b23 60%, #041b11 100%)',
-        border: '1px solid rgba(250,204,21,0.25)',
-      }}>
-        <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-yellow-500/5" />
-        <p className="text-[10px] font-mono text-yellow-400 tracking-widest uppercase mb-2">Premium Early Access</p>
-        <h3 className="font-display font-semibold text-white text-xl mb-2">
-          Watch before everyone else
-        </h3>
-        <p className="text-gray-400 text-xs font-body mb-4 leading-relaxed">
-          Get exclusive access to new Pupa Originals up to 2 weeks before general release.
-        </p>
-        <button className="btn-gold px-5 py-2.5 rounded-xl text-sm font-bold">
-          Upgrade to Premium
-        </button>
+        <CategoriesPreview />
       </div>
-
-      <ContentRow title="Recommended For You" movies={[...TRENDING].reverse()} />
     </div>
   );
 }
