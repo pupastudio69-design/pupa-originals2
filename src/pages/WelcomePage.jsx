@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { buildPaymentData, FLUTTERWAVE_CONFIG } from '../flutterwave';
-import { Crown, Check, X, AlertCircle, Zap, Gift, Calendar } from 'lucide-react';
+import { buildPaymentData } from '../flutterwave';
+import { Crown, Check, X, AlertCircle, Zap, Gift, Calendar, Star, Clock, Film, MessageSquare, Download, Wallet } from 'lucide-react';
 
 export default function WelcomePage() {
   const { user } = useAuth();
@@ -23,9 +23,7 @@ export default function WelcomePage() {
         '30-60 Movie Library',
         'Delayed New Releases (7-14 days)',
         'Light Ads & Sponsored Messages',
-        'View-Only Comments',
-        'No Downloads',
-        'No Exclusive Content'
+        'Silver PUPA Badge on Profile'
       ],
       hasAds: true,
       hasDownloads: false,
@@ -41,10 +39,8 @@ export default function WelcomePage() {
         'Unlimited Movie Library',
         'Immediate New Releases',
         'No Ads — Ever',
-        'Full Comments & Interaction',
-        'Unlimited Downloads',
-        'Exclusive Content Access',
-        'Early Releases & Voting Power'
+        'Gold PUPA Badge on Profile',
+        'Priority Support'
       ],
       hasAds: false,
       hasDownloads: true,
@@ -161,6 +157,14 @@ export default function WelcomePage() {
 
   const plans = [PLANS.basic, PLANS.premium];
 
+  const upcomingFeatures = [
+    { icon: MessageSquare, label: 'Comments', desc: 'Discuss movies with other members' },
+    { icon: Download, label: 'Offline Downloads', desc: 'Watch without internet' },
+    { icon: Wallet, label: 'Wallet & Coins', desc: 'Gift and support creators' },
+    { icon: Gift, label: 'Rewards Program', desc: 'Earn points for watching' },
+    { icon: Star, label: 'Referrals', desc: 'Invite friends and earn' },
+  ];
+
   return (
     <div className="min-h-screen bg-[#0a0a1a] flex flex-col items-center justify-center px-4 py-8">
       <div className="mb-6 text-center">
@@ -199,6 +203,7 @@ export default function WelcomePage() {
         </div>
       )}
 
+      {/* Plans */}
       <div className="w-full max-w-md space-y-4 mb-8">
         {plans.map((plan) => {
           const isSelected = selectedPlan === plan.id;
@@ -240,7 +245,7 @@ export default function WelcomePage() {
               </div>
 
               <ul className="space-y-2">
-                {plan.features.slice(0, 4).map((feature, i) => (
+                {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
                     <Check className="w-4 h-4 text-emerald-400" />
                     {feature}
@@ -252,6 +257,32 @@ export default function WelcomePage() {
         })}
       </div>
 
+      {/* Upcoming Features Notice */}
+      <div className="w-full max-w-md bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-6">
+        <h3 className="text-blue-400 text-sm font-semibold mb-2 flex items-center gap-2">
+          <Zap size={16} />
+          Coming Soon to Pupa
+        </h3>
+        <p className="text-gray-400 text-xs mb-3">
+          We are building more features for you. Here is what is coming:
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {upcomingFeatures.map((f) => (
+            <div key={f.label} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+              <f.icon size={14} className="text-gray-500" />
+              <div>
+                <p className="text-gray-300 text-[11px] font-medium">{f.label}</p>
+                <p className="text-gray-600 text-[9px]">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-gray-500 text-xs mt-3">
+          Subscribe now to lock in your price. All future features will be included in your plan.
+        </p>
+      </div>
+
+      {/* Action Buttons */}
       <div className="w-full max-w-md space-y-3">
         <button
           onClick={handleStartTrial}
@@ -266,7 +297,7 @@ export default function WelcomePage() {
           disabled={loading || !selectedPlan}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all disabled:opacity-50"
         >
-          {loading ? 'Processing...' : `Pay Now & Subscribe`}
+          {loading ? 'Processing...' : 'Pay Now & Subscribe'}
         </button>
 
         <p className="text-center text-gray-500 text-xs">

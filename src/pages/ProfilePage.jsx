@@ -347,13 +347,13 @@ export default function ProfilePage({ onTermsClick }) {
           icon: HelpCircle, 
           label: 'Help & Support', 
           sub: 'Get assistance', 
-          onClick: () => setActiveOverlay('help')
+          onClick: () => navigate('/support')
         },
         { 
           icon: FileText, 
           label: 'Privacy Policy', 
           sub: 'How we protect your data', 
-          onClick: () => {}
+          onClick: () => navigate('/privacy')
         },
         { 
           icon: FileText, 

@@ -18,6 +18,8 @@ import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import WelcomePage from './pages/WelcomePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import SupportPage from './pages/SupportPage';
 
 // Initialize Firebase Messaging
 let messaging = null;
@@ -161,6 +163,8 @@ function MainLayout() {
           <Route path="/profile" element={<ProfilePage onTermsClick={handleTermsClick} />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/support" element={<SupportPage />} />
         </Routes>
       </main>
 
