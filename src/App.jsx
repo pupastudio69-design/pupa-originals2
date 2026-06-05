@@ -11,7 +11,7 @@ import SearchOverlay from './components/SearchOverlay';
 import CategoriesOverlay from './components/CategoriesOverlay';
 import HomePage from './pages/HomePage';
 import MovieDetailPage from './pages/MovieDetailPage';
-import WalletPage from './pages/WalletPage';
+import ExplorePage from './pages/ExplorePage';
 import DownloadsPage from './pages/DownloadsPage';
 import ProfilePage from './pages/ProfilePage';
 import TermsPage from './pages/TermsPage';
@@ -61,9 +61,9 @@ function MainLayout() {
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path === '/home') setActiveTab('home');
-    else if (path === '/wallet') setActiveTab('wallet');
+    else if (path === '/explore') setActiveTab('explore');
     else if (path === '/downloads') setActiveTab('downloads');
-    else if (path === '/me') setActiveTab('me');
+    else if (path === '/profile') setActiveTab('profile');
   }, [location.pathname]);
 
   // Request push notification permission
@@ -97,9 +97,9 @@ function MainLayout() {
     setActiveTab(tab);
     switch (tab) {
       case 'home': navigate('/'); break;
-      case 'wallet': navigate('/wallet'); break;
+      case 'explore': navigate('/explore'); break;
       case 'downloads': navigate('/downloads'); break;
-      case 'me': navigate('/me'); break;
+      case 'profile': navigate('/profile'); break;
     }
   };
 
@@ -156,9 +156,9 @@ function MainLayout() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage onCategoriesOpen={handleCategoriesOpen} />} />
-          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
           <Route path="/downloads" element={<DownloadsPage />} />
-          <Route path="/me" element={<ProfilePage onTermsClick={handleTermsClick} />} />
+          <Route path="/profile" element={<ProfilePage onTermsClick={handleTermsClick} />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
         </Routes>

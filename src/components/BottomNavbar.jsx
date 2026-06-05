@@ -1,11 +1,11 @@
 import React from 'react';
-import { Home, Wallet, Download, User } from 'lucide-react';
+import { Home, Compass, Download, User } from 'lucide-react';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'Home', Icon: Home },
-  { id: 'wallet', label: 'Wallet', Icon: Wallet },
-  { id: 'downloads', label: 'Downloads', Icon: Download },
-  { id: 'me', label: 'Me', Icon: User },
+  { id: 'explore', label: 'Explore', Icon: Compass },
+  { id: 'downloads', label: 'Downloads', Icon: Download, badge: 'Soon' },
+  { id: 'profile', label: 'Profile', Icon: User },
 ];
 
 export default function BottomNavbar({ active, onChange }) {
@@ -20,7 +20,7 @@ export default function BottomNavbar({ active, onChange }) {
       }}
     >
       <div className="flex items-center justify-around px-2 py-1 pb-safe">
-        {NAV_ITEMS.map(({ id, label, Icon }) => {
+        {NAV_ITEMS.map(({ id, label, Icon, badge }) => {
           const isActive = active === id;
           return (
             <button
@@ -39,15 +39,23 @@ export default function BottomNavbar({ active, onChange }) {
                 }}
               />
 
-              <Icon
-                size={20}
-                className="transition-all duration-300"
-                style={{
-                  color: isActive ? '#facc15' : '#6b7280',
-                  filter: isActive ? 'drop-shadow(0 0 8px rgba(250,204,21,0.5))' : 'none',
-                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                }}
-              />
+              <div className="relative">
+                <Icon
+                  size={20}
+                  className="transition-all duration-300"
+                  style={{
+                    color: isActive ? '#facc15' : '#6b7280',
+                    filter: isActive ? 'drop-shadow(0 0 8px rgba(250,204,21,0.5))' : 'none',
+                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                />
+                {/* Coming Soon badge */}
+                {badge && (
+                  <span className="absolute -top-1.5 -right-3 text-[6px] font-bold px-1 py-0 rounded-full bg-emerald-500 text-white">
+                    {badge}
+                  </span>
+                )}
+              </div>
               <span
                 className="text-[10px] font-body font-medium tracking-wide transition-colors duration-300"
                 style={{ color: isActive ? '#facc15' : '#6b7280' }}
