@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { buildPaymentData } from '../flutterwave';
-import { Crown, Check, X, AlertCircle, Zap, Gift, Calendar, Star, Clock, Film, MessageSquare, Download, Wallet } from 'lucide-react';
+import { 
+  SUBSCRIPTION_PLANS, 
+  buildMonnifyPaymentData, 
+  initializeMonnifyPayment,
+  verifyMonnifyTransaction 
+} from '../monnify';
+import { Crown, Check, AlertCircle, Zap, Gift, Star, MessageSquare, Download, Wallet } from 'lucide-react';
 
 export default function WelcomePage() {
   const { user } = useAuth();
@@ -14,38 +19,16 @@ export default function WelcomePage() {
 
   const PLANS = {
     basic: {
-      id: 'basic',
-      name: 'Basic',
-      monthlyPrice: 2500,
-      yearlyPrice: 25000,
-      features: [
-        'Standard Streaming Quality',
-        '30-60 Movie Library',
-        'Delayed New Releases (7-14 days)',
-        'Light Ads & Sponsored Messages',
-        'Silver PUPA Badge on Profile'
-      ],
-      hasAds: true,
-      hasDownloads: false,
-      quality: 'Standard'
+      ...SUBSCRIPTION_PLANS.basic,
+      price: selectedPeriod === 'yearly' 
+        ? SUBSCRIPTION_PLANS.basic.yearlyPrice 
+        : SUBSCRIPTION_PLANS.basic.monthlyPrice
     },
     premium: {
-      id: 'premium',
-      name: 'Premium',
-      monthlyPrice: 4000,
-      yearlyPrice: 40000,
-      features: [
-        '4K Ultra HD Streaming',
-        'Unlimited Movie Library',
-        'Immediate New Releases',
-        'No Ads — Ever',
-        'Gold PUPA Badge on Profile',
-        'Priority Support'
-      ],
-      hasAds: false,
-      hasDownloads: true,
-      quality: '4K Ultra HD',
-      popular: true
+      ...SUBSCRIPTION_PLANS.premium,
+      price: selectedPeriod === 'yearly' 
+        ? SUBSCRIPTION_PLANS.premium.yearlyPrice 
+        : SUBSCRIPTION_PLANS.premium.monthlyPrice
     }
   };
 
@@ -105,51 +88,63 @@ export default function WelcomePage() {
       setError('Please select a plan to continue');
       return;
     }
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      const plan = PLANS[selectedPlan];
+      const plan = SUBSCRIPTION_PLANS[selectedPlan];
       const amount = getPrice(plan);
-      const paymentData = buildPaymentData({
+
+      const paymentData = buildMonnifyPaymentData({
         user,
         amount,
+        email: user?.email,
+        name: user?.displayName,
         paymentType: 'subscription',
         planId: selectedPlan,
-        callbackUrl: window.location.origin + '/profile?payment=success'
+        callbackUrl: `${window.location.origin}/welcome?payment=success`
       });
 
-      const script = document.createElement('script');
-      script.src = 'https://checkout.flutterwave.com/v3.js';
-      script.onload = () => {
-        window.FlutterwaveCheckout({
-          ...paymentData,
-          callback: (response) => {
-            if (response.status === 'successful') {
-              const duration = selectedPeriod === 'yearly' ? 365 : 30;
-              const subData = {
-                plan: selectedPlan,
-                period: selectedPeriod,
-                startDate: new Date().toISOString(),
-                expiryDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString(),
-                status: 'active',
-                transactionId: response.transaction_id
-              };
-              localStorage.setItem('pupa_subscription', JSON.stringify(subData));
-              navigate('/');
-            } else {
-              setError('Payment failed. Please try again.');
-            }
+      await initializeMonnifyPayment(
+        paymentData,
+        async (response) => {
+          console.log('Payment successful:', response);
+          const verify = await verifyMonnifyTransaction(response.paymentReference);
+          
+          if (verify.success && verify.status === 'PAID') {
+            const duration = selectedPeriod === 'yearly' ? 365 : 30;
+            const subData = {
+              plan: selectedPlan,
+              period: selectedPeriod,
+              startDate: new Date().toISOString(),
+              expiryDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString(),
+              status: 'active',
+              paymentReference: response.paymentReference,
+              transactionReference: response.transactionReference,
+              paymentMethod: 'monnify_card',
+              amountPaid: amount
+            };
+            localStorage.setItem('pupa_subscription', JSON.stringify(subData));
             setLoading(false);
-          },
-          onclose: () => {
+            navigate('/');
+          } else {
             setLoading(false);
-            setError('Payment was cancelled. Please try again to continue.');
+            setError('Payment verification failed. Contact support if charged.');
           }
-        });
-      };
-      document.body.appendChild(script);
+        },
+        (error) => {
+          console.error('Payment failed:', error);
+          setLoading(false);
+          setError('Payment failed or was cancelled. Please try again.');
+        }
+      );
     } catch (err) {
+      console.error('Payment init error:', err);
       setError('Payment initialization failed. Please try again.');
       setLoading(false);
     }
@@ -175,7 +170,6 @@ export default function WelcomePage() {
         <p className="text-gray-400 text-sm">Start with a 1-day free trial</p>
       </div>
 
-      {/* Period Toggle */}
       <div className="w-full max-w-md bg-white/5 rounded-xl p-1 mb-6 flex">
         <button
           onClick={() => setSelectedPeriod('monthly')}
@@ -203,7 +197,6 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* Plans */}
       <div className="w-full max-w-md space-y-4 mb-8">
         {plans.map((plan) => {
           const isSelected = selectedPlan === plan.id;
@@ -257,7 +250,6 @@ export default function WelcomePage() {
         })}
       </div>
 
-      {/* Upcoming Features Notice */}
       <div className="w-full max-w-md bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-6">
         <h3 className="text-blue-400 text-sm font-semibold mb-2 flex items-center gap-2">
           <Zap size={16} />
@@ -282,7 +274,6 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      {/* Action Buttons */}
       <div className="w-full max-w-md space-y-3">
         <button
           onClick={handleStartTrial}
@@ -297,11 +288,11 @@ export default function WelcomePage() {
           disabled={loading || !selectedPlan}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all disabled:opacity-50"
         >
-          {loading ? 'Processing...' : 'Pay Now & Subscribe'}
+          {loading ? 'Processing...' : 'Pay Now with Monnify'}
         </button>
 
         <p className="text-center text-gray-500 text-xs">
-          Cancel anytime. No hidden fees. Subscription auto-renews.
+          Cancel anytime. No hidden fees. Card payments only.
         </p>
       </div>
     </div>
