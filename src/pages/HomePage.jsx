@@ -2,13 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { Play, Info, Star, Clock, TrendingUp, Crown, ChevronRight } from 'lucide-react';
+import { Play, Info, Star, Clock, TrendingUp, Crown, ChevronRight, AlertTriangle } from 'lucide-react';
 import {
   ALL_MOVIES, TRENDING, PUPA_ORIGINALS, NEW_RELEASES, AFRICAN_HITS, CATEGORIES
 } from '../data/movies.js';
 
 const auth = getAuth();
 const db = getFirestore();
+
+// Check subscription status
+function checkSubscription() {
+  const sub = localStorage.getItem('pupa_subscription');
+  if (!sub) return { active: false, expired: true, reason: 'no_subscription' };
+
+  try {
+    const data = JSON.parse(sub);
+    const expiry = new Date(data.expiryDate);
+    const now = new Date();
+
+    if (expiry > now) {
+      const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+      return { active: true, expired: false, plan: data.plan, daysLeft };
+    } else {
+      localStorage.removeItem('pupa_subscription');
+      return { active: false, expired: true, reason: 'expired' };
+    }
+  } catch {
+    localStorage.removeItem('pupa_subscription');
+    return { active: false, expired: true, reason: 'invalid' };
+  }
+}
 
 function ContinueWatchingCard({ movie }) {
   const navigate = useNavigate();
@@ -80,35 +103,59 @@ function ContentRow({ title, movies, icon: Icon }) {
   );
 }
 
-function SubscriptionCard() {
+function SubscriptionBanner({ subStatus }) {
   const navigate = useNavigate();
-  const sub = localStorage.getItem('pupa_subscription');
-  const subscription = sub ? JSON.parse(sub) : null;
-  const isPremium = subscription?.plan === 'premium';
-  const isTrial = subscription?.status === 'trial';
 
-  if (isPremium) return null;
+  if (!subStatus.active) return (
+    <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-red-900/50 to-orange-900/20 border border-red-500/30">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-red-400/20 flex items-center justify-center">
+          <AlertTriangle size={20} className="text-red-400" />
+        </div>
+        <div className="flex-1">
+          <p className="text-white text-sm font-semibold">Subscription Required</p>
+          <p className="text-gray-400 text-xs">Please subscribe to watch movies</p>
+        </div>
+        <button 
+          onClick={() => navigate('/welcome')}
+          className="px-4 py-2 rounded-lg bg-yellow-400 text-black text-xs font-bold"
+        >
+          Subscribe
+        </button>
+      </div>
+    </div>
+  );
 
-  return (
-    <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-emerald-900/50 to-yellow-900/20 border border-emerald-500/20">
+  if (subStatus.daysLeft <= 3) return (
+    <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-yellow-900/50 to-orange-900/20 border border-yellow-500/30">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-yellow-400/20 flex items-center justify-center">
           <Crown size={20} className="text-yellow-400" />
         </div>
         <div className="flex-1">
-          <p className="text-white text-sm font-semibold">
-            {isTrial ? 'Free Trial Active' : 'Upgrade to Premium'}
-          </p>
-          <p className="text-gray-400 text-xs">
-            {isTrial ? 'Expires in 24 hours. Upgrade now to keep watching.' : 'Get unlimited access to all movies'}
-          </p>
+          <p className="text-white text-sm font-semibold">Subscription Expiring Soon</p>
+          <p className="text-gray-400 text-xs">{subStatus.daysLeft} days left. Renew now to keep watching.</p>
         </div>
         <button 
           onClick={() => navigate('/welcome')}
-          className="px-3 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold"
+          className="px-4 py-2 rounded-lg bg-yellow-400 text-black text-xs font-bold"
         >
-          {isTrial ? 'Upgrade' : 'Subscribe'}
+          Renew
         </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-emerald-900/30 to-emerald-900/10 border border-emerald-500/20">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-emerald-400/20 flex items-center justify-center">
+          <Crown size={20} className="text-emerald-400" />
+        </div>
+        <div className="flex-1">
+          <p className="text-white text-sm font-semibold">{subStatus.plan === 'premium' ? 'Premium Active' : 'Basic Active'}</p>
+          <p className="text-gray-400 text-xs">{subStatus.daysLeft} days remaining</p>
+        </div>
       </div>
     </div>
   );
@@ -185,7 +232,20 @@ export default function HomePage() {
   const [continueWatching, setContinueWatching] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [subStatus, setSubStatus] = useState({ active: false });
   const navigate = useNavigate();
+
+  // Check subscription on mount
+  useEffect(() => {
+    const status = checkSubscription();
+    setSubStatus(status);
+
+    // If no active subscription, redirect to welcome page
+    if (!status.active) {
+      navigate('/welcome');
+      return;
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -208,12 +268,39 @@ export default function HomePage() {
   const popularMovies = [...TRENDING].sort((a, b) => (b.views || '').replace('M', '000000').replace('K', '000') - (a.views || '').replace('M', '000000').replace('K', '000')).slice(0, 10);
   const recentlyAdded = [...NEW_RELEASES, ...PUPA_ORIGINALS].slice(0, 10);
 
+  // Show loading while checking subscription
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <div className="text-white text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  // If no subscription, this won't render (redirected above)
+  // But just in case:
+  if (!subStatus.active) {
+    return (
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-lg mb-4">Subscription Required</p>
+          <button 
+            onClick={() => navigate('/welcome')}
+            className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-bold"
+          >
+            Subscribe Now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-24">
       <FeaturedBanner />
 
       <div className="pt-4">
-        <SubscriptionCard />
+        <SubscriptionBanner subStatus={subStatus} />
 
         {user && continueWatching.length > 0 && (
           <section className="mb-6">

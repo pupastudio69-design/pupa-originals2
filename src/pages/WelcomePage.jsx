@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   SUBSCRIPTION_PLANS, 
@@ -12,35 +12,32 @@ import { Crown, Check, AlertCircle, Zap, Gift, Star, MessageSquare, Download, Wa
 export default function WelcomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const location = useLocation();
+  const [selectedPlan, setSelectedPlan] = useState('premium'); // Default to premium
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const PLANS = {
-    basic: {
-      ...SUBSCRIPTION_PLANS.basic,
-      price: selectedPeriod === 'yearly' 
-        ? SUBSCRIPTION_PLANS.basic.yearlyPrice 
-        : SUBSCRIPTION_PLANS.basic.monthlyPrice
-    },
-    premium: {
-      ...SUBSCRIPTION_PLANS.premium,
-      price: selectedPeriod === 'yearly' 
-        ? SUBSCRIPTION_PLANS.premium.yearlyPrice 
-        : SUBSCRIPTION_PLANS.premium.monthlyPrice
-    }
-  };
-
+  // Check if user already has active subscription
   useEffect(() => {
     const hasSub = localStorage.getItem('pupa_subscription');
     if (hasSub) {
       try {
         const data = JSON.parse(hasSub);
-        if (new Date(data.expiryDate) > new Date()) {
+        const expiry = new Date(data.expiryDate);
+        const now = new Date();
+        if (expiry > now) {
+          // Has active subscription — redirect home
           navigate('/');
+        } else {
+          // Subscription expired — clear it and show payment page
+          localStorage.removeItem('pupa_subscription');
+          setError('Your subscription has expired. Please renew to continue watching.');
         }
-      } catch {}
+      } catch {
+        localStorage.removeItem('pupa_subscription');
+      }
     }
   }, [navigate]);
 
@@ -61,33 +58,7 @@ export default function WelcomePage() {
     return 0;
   };
 
-  const handleStartTrial = async () => {
-    if (!selectedPlan) {
-      setError('Please select a plan to continue');
-      return;
-    }
-    setLoading(true);
-    try {
-      const trialData = {
-        plan: selectedPlan,
-        startDate: new Date().toISOString(),
-        expiryDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        status: 'trial'
-      };
-      localStorage.setItem('pupa_subscription', JSON.stringify(trialData));
-      navigate('/');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handlePayNow = async () => {
-    if (!selectedPlan) {
-      setError('Please select a plan to continue');
-      return;
-    }
     if (!user) {
       navigate('/login');
       return;
@@ -95,6 +66,7 @@ export default function WelcomePage() {
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const plan = SUBSCRIPTION_PLANS[selectedPlan];
@@ -114,8 +86,10 @@ export default function WelcomePage() {
         paymentData,
         async (response) => {
           console.log('Payment successful:', response);
+
+          // Verify the transaction with Monnify
           const verify = await verifyMonnifyTransaction(response.paymentReference);
-          
+
           if (verify.success && verify.status === 'PAID') {
             const duration = selectedPeriod === 'yearly' ? 365 : 30;
             const subData = {
@@ -130,27 +104,31 @@ export default function WelcomePage() {
               amountPaid: amount
             };
             localStorage.setItem('pupa_subscription', JSON.stringify(subData));
+            setSuccess('Payment successful! Redirecting to your movies...');
             setLoading(false);
-            navigate('/');
+
+            setTimeout(() => {
+              navigate('/');
+            }, 2000);
           } else {
             setLoading(false);
-            setError('Payment verification failed. Contact support if charged.');
+            setError('Payment verification failed. Please contact support if you were charged.');
           }
         },
         (error) => {
           console.error('Payment failed:', error);
           setLoading(false);
-          setError('Payment failed or was cancelled. Please try again.');
+          setError('Payment was cancelled or failed. Please try again.');
         }
       );
     } catch (err) {
       console.error('Payment init error:', err);
-      setError('Payment initialization failed. Please try again.');
+      setError('Something went wrong. Please try again.');
       setLoading(false);
     }
   };
 
-  const plans = [PLANS.basic, PLANS.premium];
+  const plans = [SUBSCRIPTION_PLANS.basic, SUBSCRIPTION_PLANS.premium];
 
   const upcomingFeatures = [
     { icon: MessageSquare, label: 'Comments', desc: 'Discuss movies with other members' },
@@ -167,9 +145,10 @@ export default function WelcomePage() {
           <Crown className="w-8 h-8 text-white" />
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Choose Your Plan</h1>
-        <p className="text-gray-400 text-sm">Start with a 1-day free trial</p>
+        <p className="text-gray-400 text-sm">Unlock unlimited Nollywood movies</p>
       </div>
 
+      {/* Period Toggle */}
       <div className="w-full max-w-md bg-white/5 rounded-xl p-1 mb-6 flex">
         <button
           onClick={() => setSelectedPeriod('monthly')}
@@ -190,13 +169,22 @@ export default function WelcomePage() {
         </button>
       </div>
 
+      {/* Messages */}
       {error && (
         <div className="w-full max-w-md bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400" />
+          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
           <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
 
+      {success && (
+        <div className="w-full max-w-md bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <p className="text-emerald-400 text-sm">{success}</p>
+        </div>
+      )}
+
+      {/* Plans */}
       <div className="w-full max-w-md space-y-4 mb-8">
         {plans.map((plan) => {
           const isSelected = selectedPlan === plan.id;
@@ -240,7 +228,7 @@ export default function WelcomePage() {
               <ul className="space-y-2">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -250,6 +238,7 @@ export default function WelcomePage() {
         })}
       </div>
 
+      {/* Upcoming Features */}
       <div className="w-full max-w-md bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-6">
         <h3 className="text-blue-400 text-sm font-semibold mb-2 flex items-center gap-2">
           <Zap size={16} />
@@ -274,25 +263,18 @@ export default function WelcomePage() {
         </p>
       </div>
 
+      {/* Pay Button ONLY — NO FREE TRIAL */}
       <div className="w-full max-w-md space-y-3">
         <button
-          onClick={handleStartTrial}
-          disabled={loading || !selectedPlan}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold hover:from-emerald-400 hover:to-emerald-500 transition-all disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : 'Start 1-Day Free Trial'}
-        </button>
-
-        <button
           onClick={handlePayNow}
-          disabled={loading || !selectedPlan}
+          disabled={loading}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all disabled:opacity-50"
         >
-          {loading ? 'Processing...' : 'Pay Now with Monnify'}
+          {loading ? 'Processing...' : `Pay ₦${getPrice(SUBSCRIPTION_PLANS[selectedPlan]).toLocaleString()} with Monnify`}
         </button>
 
         <p className="text-center text-gray-500 text-xs">
-          Cancel anytime. No hidden fees. Card payments only.
+          Secure card payment. No hidden fees. Cancel anytime.
         </p>
       </div>
     </div>
