@@ -88,3 +88,9 @@ export const ENTERTAINMENT = Array.from({ length: 8 }, (_, i) => ({
   rating: 4.0 + Math.random() * 1.5,
   duration: '1:00:00'
 }));
+
+// Get movie by ID (searches all content types)
+export const getMovieById = (id) => {
+  const allContent = [...ALL_MOVIES, ...TV_SHOWS, ...DOCUMENTARIES, ...ENTERTAINMENT];
+  return allContent.find(item => item.id === id);
+};

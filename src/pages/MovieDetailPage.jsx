@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMovieById, ALL_MOVIES } from '../data/movies.js';
+import { getMovieById, ALL_MOVIES } from '../data/movies';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { 
   ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, AlertTriangle, Crown, MessageSquare
@@ -46,7 +46,6 @@ export default function MovieDetailPage() {
 
   const submitFeedback = (type) => {
     setFeedbackType(type);
-    // In production, save to Firestore
     console.log('Feedback:', { movieId: id, type, text: feedbackText, userId: user?.uid });
     setFeedbackSubmitted(true);
     setTimeout(() => {
@@ -304,7 +303,7 @@ export default function MovieDetailPage() {
         )}
 
         {/* Community Reviews */}
-        <div className="px-4 mb-6">
+        <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-white font-bold text-sm flex items-center gap-2">
               <MessageSquare size={16} className="text-emerald-400" />
