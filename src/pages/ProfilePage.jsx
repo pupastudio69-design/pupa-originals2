@@ -6,209 +6,29 @@ import { auth, storage } from '../firebase';
 import {
   User, Settings, Crown, ChevronRight, LogOut, Camera, Mail,
   Star, Clock, Gift, Download, Wallet, HelpCircle, FileText,
-  Shield, Bell, X, Edit3, Check, MessageSquare, ThumbsUp, AlertTriangle
+  Shield, Bell, X, Edit3, Check, MessageSquare, ThumbsUp, 
+  Users, Heart, Film, Bookmark
 } from 'lucide-react';
 
-// Settings Overlay
-function SettingsOverlay({ onClose }) {
-  const [darkMode, setDarkMode] = useState(true);
-  const [autoPlay, setAutoPlay] = useState(true);
-  const [notifications, setNotifications] = useState(true);
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
-        <h2 className="text-white text-lg font-semibold">Settings</h2>
-        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mb-6">
-          <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3">Playback</h3>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-              <span className="text-white text-sm">Auto-play next movie</span>
-              <button onClick={() => setAutoPlay(!autoPlay)} className="w-11 h-6 rounded-full bg-emerald-500 relative">
-                <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform" style={{ transform: autoPlay ? 'translateX(20px)' : 'translateX(2px)' }} />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="mb-6">
-          <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3">Appearance</h3>
-          <div className="p-3 rounded-xl bg-white/5">
-            <p className="text-gray-400 text-sm">Dark mode is always on for the best viewing experience</p>
-          </div>
-        </div>
-        <div className="mb-6">
-          <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3">Notifications</h3>
-          <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-            <span className="text-white text-sm">Push notifications</span>
-            <button onClick={() => setNotifications(!notifications)} className="w-11 h-6 rounded-full bg-emerald-500 relative">
-              <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform" style={{ transform: notifications ? 'translateX(20px)' : 'translateX(2px)' }} />
-            </button>
-          </div>
-        </div>
-        <div className="p-3 rounded-xl bg-white/5">
-          <p className="text-gray-400 text-sm">Pupa v1.0.0</p>
-          <p className="text-gray-600 text-xs mt-1">© 2025 Pupa Originals</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Edit Profile Overlay
-function EditProfileOverlay({ user, onClose, onUpdate }) {
-  const [name, setName] = useState(user?.displayName || '');
-  const [bio, setBio] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      await updateProfile(user, { displayName: name.trim() });
-      onUpdate(name.trim());
-      onClose();
-    } catch (err) {
-      console.error('Update error:', err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
-        <h2 className="text-white text-lg font-semibold">Edit Profile</h2>
-        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mb-4">
-          <label className="text-gray-500 text-xs uppercase tracking-wider mb-2 block">Display Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="text-gray-500 text-xs uppercase tracking-wider mb-2 block">Bio (Coming Soon)</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell us about yourself..."
-            disabled
-            className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 text-sm resize-none opacity-50"
-            rows={3}
-          />
-          <p className="text-gray-600 text-xs mt-1">Bio editing will be available in a future update</p>
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || !name.trim()}
-          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Feedback Overlay
-function FeedbackOverlay({ onClose }) {
-  const [feedback, setFeedback] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = () => {
-    if (!feedback.trim()) return;
-    // In production: save to Firestore
-    console.log('Feedback submitted:', feedback);
-    setSubmitted(true);
-    setTimeout(() => { setSubmitted(false); onClose(); }, 2000);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
-        <h2 className="text-white text-lg font-semibold">Feedback & Suggestions</h2>
-        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {!submitted ? (
-          <>
-            <p className="text-gray-400 text-sm mb-4">Help us improve Pupa Originals. Your feedback matters.</p>
-            <textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="What do you like? What should we improve?"
-              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500 resize-none mb-4"
-              rows={6}
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={!feedback.trim()}
-              className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-50"
-            >
-              Submit Feedback
-            </button>
-          </>
-        ) : (
-          <div className="text-center py-8">
-            <ThumbsUp className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-            <p className="text-white font-bold">Thank you!</p>
-            <p className="text-gray-400 text-sm">Your feedback has been received.</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Help Overlay
-function HelpOverlay({ onClose }) {
-  const faqs = [
-    { q: 'How do I start my free trial?', a: 'Sign up and select any plan. Your 1-day free trial starts immediately.' },
-    { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel anytime from your Profile > Membership.' },
-    { q: 'What is included in Premium?', a: '4K streaming, unlimited downloads, no ads, and exclusive content.' },
-    { q: 'How do I download movies?', a: 'Downloads are coming soon. We will notify you when available.' },
-  ];
-
-  return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a1a] flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-14 pb-4 border-b border-white/5">
-        <h2 className="text-white text-lg font-semibold">Help & Support</h2>
-        <button onClick={onClose}><X size={24} className="text-gray-400" /></button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <div key={i} className="p-4 rounded-xl bg-white/5">
-              <p className="text-white text-sm font-medium mb-1">{faq.q}</p>
-              <p className="text-gray-400 text-xs">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <p className="text-emerald-400 text-sm font-medium mb-1">Need more help?</p>
-          <p className="text-gray-400 text-xs">Contact us at support@pupaoriginals.com</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function ProfilePage({ onTermsClick }) {
+export default function ProfilePage() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeOverlay, setActiveOverlay] = useState(null);
+  const [activeTab, setActiveTab] = useState('activity'); // activity, watchlist, liked
   const [profileImage, setProfileImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState(() => localStorage.getItem('pupa_bio') || '');
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [tempBio, setTempBio] = useState('');
+
+  // Friend system
+  const [followers, setFollowers] = useState(() => {
+    return parseInt(localStorage.getItem('pupa_followers') || '0');
+  });
+  const [following, setFollowing] = useState(() => {
+    return parseInt(localStorage.getItem('pupa_following') || '0');
+  });
 
   // Get subscription status
   const getSubscription = () => {
@@ -220,7 +40,26 @@ export default function ProfilePage({ onTermsClick }) {
   const subscription = getSubscription();
   const isPremium = subscription?.plan === 'premium';
   const isTrial = subscription?.status === 'trial';
-  const isBasic = subscription?.plan === 'basic' && !isTrial;
+
+  // Rewards data
+  const points = parseInt(localStorage.getItem('pupa_points') || '0');
+  const referrals = parseInt(localStorage.getItem('pupa_referral_count') || '0');
+  const tier = points >= 1000 ? 'Platinum' : points >= 500 ? 'Gold' : points >= 200 ? 'Silver' : 'Bronze';
+
+  // User's comments on movies
+  const [userComments, setUserComments] = useState(() => {
+    return JSON.parse(localStorage.getItem('pupa_user_comments') || '[]');
+  });
+
+  // Watchlist
+  const [watchlist, setWatchlist] = useState(() => {
+    return JSON.parse(localStorage.getItem('pupa_watchlist') || '[]');
+  });
+
+  // Liked movies
+  const [likedMovies, setLikedMovies] = useState(() => {
+    return JSON.parse(localStorage.getItem('pupa_liked_movies') || '[]');
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -252,6 +91,12 @@ export default function ProfilePage({ onTermsClick }) {
     }
   };
 
+  const handleSaveBio = () => {
+    localStorage.setItem('pupa_bio', tempBio);
+    setBio(tempBio);
+    setIsEditingBio(false);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -265,18 +110,12 @@ export default function ProfilePage({ onTermsClick }) {
   const getUserName = () => displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Pupa Member';
   const getAvatarLetter = () => getUserName().charAt(0).toUpperCase();
 
-  // Rewards and referral data
-  const points = parseInt(localStorage.getItem('pupa_points') || '0');
-  const referrals = parseInt(localStorage.getItem('pupa_referral_count') || '0');
-  const tier = points >= 1000 ? 'Platinum' : points >= 500 ? 'Gold' : points >= 200 ? 'Silver' : 'Bronze';
-
-  // Small checkmark badge next to name like X/Twitter verification
   const MembershipBadge = () => {
     if (!subscription) return null;
     if (isPremium || isTrial) {
       return (
         <span className="inline-flex items-center ml-1" title="Gold Member">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5"/>
             <path d="M8 12l3 3 5-6" stroke="#1a1a2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
           </svg>
@@ -285,115 +124,13 @@ export default function ProfilePage({ onTermsClick }) {
     }
     return (
       <span className="inline-flex items-center ml-1" title="Silver Member">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="1.5"/>
           <path d="M8 12l3 3 5-6" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
       </span>
     );
   };
-
-  const MENU_SECTIONS = [
-    {
-      title: 'Account',
-      items: [
-        { 
-          icon: User, 
-          label: 'Edit Profile', 
-          sub: 'Name, photo, bio', 
-          onClick: () => setActiveOverlay('editProfile')
-        },
-        { 
-          icon: Mail, 
-          label: 'Email', 
-          sub: currentUser?.email || 'Not set', 
-          onClick: () => {}
-        },
-      ]
-    },
-    {
-      title: 'Membership',
-      items: [
-        { 
-          icon: Crown, 
-          label: 'Current Plan', 
-          sub: isPremium ? 'Premium (Active)' : isTrial ? 'Free Trial' : 'Basic (Free)',
-          onClick: () => navigate('/welcome')
-        },
-        { 
-          icon: Star, 
-          label: 'Upgrade Plan', 
-          sub: 'Get Premium benefits',
-          onClick: () => navigate('/welcome')
-        },
-        { 
-          icon: Shield, 
-          label: 'Billing Information', 
-          sub: 'Manage payment methods',
-          onClick: () => {}
-        },
-      ]
-    },
-    {
-      title: 'Rewards & Referrals',
-      items: [
-        { 
-          icon: Gift, 
-          label: 'Rewards', 
-          sub: `${points} points · ${tier} tier`, 
-          onClick: () => navigate('/rewards')
-        },
-        { 
-          icon: Star, 
-          label: 'Referrals', 
-          sub: `${referrals} friends invited`, 
-          onClick: () => navigate('/referrals')
-        },
-        { 
-          icon: Wallet, 
-          label: 'Wallet', 
-          sub: 'Coming Soon', 
-          disabled: true, 
-          onClick: () => {} 
-        },
-        { 
-          icon: Download, 
-          label: 'Downloads', 
-          sub: 'Manage offline content', 
-          onClick: () => navigate('/downloads')
-        },
-      ]
-    },
-    {
-      title: 'Support',
-      items: [
-        { 
-          icon: MessageSquare, 
-          label: 'Feedback & Suggestions', 
-          sub: 'Help us improve', 
-          onClick: () => setActiveOverlay('feedback')
-        },
-        { 
-          icon: HelpCircle, 
-          label: 'Help & Support', 
-          sub: 'Get assistance', 
-          onClick: () => navigate('/support')
-        },
-        { 
-          icon: FileText, 
-          label: 'Privacy Policy', 
-          sub: 'How we protect your data', 
-          onClick: () => navigate('/privacy')
-        },
-        { 
-          icon: FileText, 
-          label: 'Terms & Conditions', 
-          sub: 'Legal information', 
-          onClick: () => onTermsClick?.()
-        },
-      ]
-    },
-  ];
 
   if (loading) {
     return (
@@ -404,110 +141,318 @@ export default function ProfilePage({ onTermsClick }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] pt-16 pb-24">
-      {/* Overlays */}
-      {activeOverlay === 'settings' && <SettingsOverlay onClose={() => setActiveOverlay(null)} />}
-      {activeOverlay === 'editProfile' && (
-        <EditProfileOverlay 
-          user={currentUser} 
-          onClose={() => setActiveOverlay(null)} 
-          onUpdate={(name) => setDisplayName(name)}
-        />
-      )}
-      {activeOverlay === 'feedback' && <FeedbackOverlay onClose={() => setActiveOverlay(null)} />}
-      {activeOverlay === 'help' && <HelpOverlay onClose={() => setActiveOverlay(null)} />}
-
-      <div className="px-5 pt-4">
-        {/* Profile Header */}
-        <div className="rounded-2xl p-5 mb-6 bg-gradient-to-br from-emerald-900/30 to-[#0a0a1a] border border-emerald-500/20">
-          <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="relative">
-              {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-500/40" />
-              ) : (
-                <div className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl text-white bg-gradient-to-br from-emerald-500 to-emerald-800">
-                  {getAvatarLetter()}
-                </div>
-              )}
-              <label className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer ${uploadingImage ? 'opacity-50' : ''}`}>
-                <Camera size={14} className="text-white" />
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImage} />
-              </label>
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center">
-                <h2 className="font-semibold text-xl text-white">{getUserName()}</h2>
-                <MembershipBadge />
+    <div className="min-h-screen bg-[#0a0a1a] pb-24">
+      {/* Profile Header Card */}
+      <div className="bg-gradient-to-b from-emerald-900/20 to-[#0a0a1a] px-5 pt-16 pb-6">
+        {/* Avatar and Name */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative mb-4">
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-emerald-500/40" />
+            ) : (
+              <div className="w-24 h-24 rounded-full flex items-center justify-center font-bold text-4xl text-white bg-gradient-to-br from-emerald-500 to-emerald-800">
+                {getAvatarLetter()}
               </div>
-              <p className="text-gray-400 text-xs">{currentUser?.email || 'Not signed in'}</p>
-            </div>
+            )}
+            <label className={`absolute bottom-0 right-0 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer ${uploadingImage ? 'opacity-50' : ''}`}>
+              <Camera size={16} className="text-white" />
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImage} />
+            </label>
           </div>
 
-          {/* Subscription Status */}
-          <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white text-sm font-medium">
-                  {isPremium ? 'Premium Active' : isTrial ? 'Free Trial (1 Day)' : 'Basic Plan'}
-                </p>
-                <p className="text-gray-500 text-xs">
-                  {isPremium ? 'Unlimited access to all content' : isTrial ? 'Full access for 24 hours' : 'Limited access - Upgrade for more'}
-                </p>
-              </div>
-              {!isPremium && (
-                <button 
-                  onClick={() => navigate('/welcome')}
-                  className="px-3 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold"
-                >
-                  {isTrial ? 'Upgrade' : 'Subscribe'}
-                </button>
-              )}
+          <div className="text-center">
+            <div className="flex items-center justify-center">
+              <h2 className="font-bold text-xl text-white">{getUserName()}</h2>
+              <MembershipBadge />
             </div>
-          </div>
-
-          {/* Upcoming Features Notice */}
-          <div className="mt-3 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-            <p className="text-blue-400 text-xs">
-              <span className="font-bold">Coming Soon:</span> Comments, downloads, wallet, and rewards. Stay tuned!
-            </p>
+            <p className="text-gray-400 text-xs mt-1">{currentUser?.email || 'Not signed in'}</p>
           </div>
         </div>
 
-        {/* Menu Sections */}
-        {MENU_SECTIONS.map((section) => (
-          <div key={section.title} className="mb-6">
-            <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3 px-1">{section.title}</h3>
-            <div className="space-y-1">
-              {section.items.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={item.onClick}
-                  disabled={item.disabled}
-                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all ${
-                    item.disabled 
-                      ? 'bg-white/5 opacity-50 cursor-not-allowed' 
-                      : 'bg-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                    <item.icon size={18} className={item.disabled ? 'text-gray-500' : 'text-emerald-400'} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${item.disabled ? 'text-gray-500' : 'text-white'}`}>{item.label}</p>
-                    <p className="text-gray-500 text-xs">{item.sub}</p>
-                  </div>
-                  {!item.disabled && <ChevronRight size={16} className="text-gray-600 flex-shrink-0" />}
-                </button>
-              ))}
-            </div>
+        {/* Stats Row */}
+        <div className="flex items-center justify-center gap-8 mb-4">
+          <div className="text-center">
+            <p className="text-white font-bold text-lg">{followers}</p>
+            <p className="text-gray-500 text-xs">Followers</p>
           </div>
-        ))}
+          <div className="w-px h-8 bg-white/10" />
+          <div className="text-center">
+            <p className="text-white font-bold text-lg">{following}</p>
+            <p className="text-gray-500 text-xs">Following</p>
+          </div>
+          <div className="w-px h-8 bg-white/10" />
+          <div className="text-center">
+            <p className="text-white font-bold text-lg">{points}</p>
+            <p className="text-gray-500 text-xs">Points</p>
+          </div>
+        </div>
 
-        {/* Settings Button */}
+        {/* Bio */}
+        <div className="text-center mb-4">
+          {isEditingBio ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={tempBio}
+                onChange={(e) => setTempBio(e.target.value)}
+                placeholder="Write a bio..."
+                className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm text-center focus:outline-none focus:border-emerald-500"
+                maxLength={100}
+              />
+              <button onClick={handleSaveBio} className="p-2 rounded-lg bg-emerald-600 text-white">
+                <Check size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <p className="text-gray-400 text-sm">{bio || 'No bio yet'}</p>
+              <button onClick={() => { setTempBio(bio); setIsEditingBio(true); }} className="text-gray-600 hover:text-gray-400">
+                <Edit3 size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Subscription Badge */}
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+            isPremium ? 'bg-yellow-400/20 text-yellow-400' : 
+            isTrial ? 'bg-emerald-400/20 text-emerald-400' : 
+            'bg-gray-700 text-gray-400'
+          }`}>
+            {isPremium ? 'Premium' : isTrial ? 'Free Trial' : 'Basic'}
+          </span>
+          <span className="px-3 py-1 rounded-full bg-white/10 text-gray-400 text-xs">
+            {tier} Tier
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button 
+            onClick={() => navigate('/settings')}
+            className="flex-1 py-2.5 rounded-xl bg-white/5 text-white text-sm font-medium hover:bg-white/10"
+          >
+            Edit Profile
+          </button>
+          <button 
+            onClick={() => navigate('/welcome')}
+            className="flex-1 py-2.5 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300"
+          >
+            {isPremium ? 'Manage Plan' : 'Upgrade'}
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-white/5 px-4">
+        {[
+          { id: 'activity', label: 'Activity', icon: Film },
+          { id: 'watchlist', label: 'Watchlist', icon: Bookmark },
+          { id: 'liked', label: 'Liked', icon: Heart },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 py-3 text-xs font-medium flex items-center justify-center gap-1 border-b-2 transition-colors ${
+              activeTab === tab.id 
+                ? 'border-yellow-400 text-yellow-400' 
+                : 'border-transparent text-gray-500'
+            }`}
+          >
+            <tab.icon size={14} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="px-4 py-4">
+        {/* Activity Tab - Shows comments user made on movies */}
+        {activeTab === 'activity' && (
+          <div>
+            {userComments.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageSquare size={32} className="text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">No activity yet</p>
+                <p className="text-gray-600 text-xs">Comment on movies to see them here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userComments.map((comment, i) => (
+                  <div key={i} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Film size={14} className="text-emerald-400" />
+                      <p className="text-white text-sm font-medium">{comment.movieTitle}</p>
+                    </div>
+                    <p className="text-gray-300 text-sm">{comment.text}</p>
+                    <p className="text-gray-600 text-xs mt-2">{comment.date}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Watchlist Tab */}
+        {activeTab === 'watchlist' && (
+          <div>
+            {watchlist.length === 0 ? (
+              <div className="text-center py-8">
+                <Bookmark size={32} className="text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Watchlist is empty</p>
+                <button 
+                  onClick={() => navigate('/tv-shows')}
+                  className="mt-3 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs"
+                >
+                  Browse Movies
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {watchlist.map(item => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => navigate(`/movie/${item.id}`)}
+                    className="text-left"
+                  >
+                    <div className="aspect-[2/3] rounded-lg overflow-hidden mb-1">
+                      <img src={item.poster} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-white text-[10px] truncate">{item.title}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Liked Movies Tab */}
+        {activeTab === 'liked' && (
+          <div>
+            {likedMovies.length === 0 ? (
+              <div className="text-center py-8">
+                <Heart size={32} className="text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">No liked movies yet</p>
+                <p className="text-gray-600 text-xs">Like movies to see them here</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {likedMovies.map(item => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => navigate(`/movie/${item.id}`)}
+                    className="text-left"
+                  >
+                    <div className="aspect-[2/3] rounded-lg overflow-hidden mb-1">
+                      <img src={item.poster} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-white text-[10px] truncate">{item.title}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Menu Sections */}
+      <div className="px-5 mt-4">
+        {/* Rewards & Referrals */}
+        <div className="mb-6">
+          <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3 px-1">Rewards & Referrals</h3>
+          <div className="space-y-1">
+            <button
+              onClick={() => navigate('/rewards')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <Gift size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Rewards</p>
+                <p className="text-gray-500 text-xs">{points} points · {tier} tier</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => navigate('/referrals')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <Users size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Referrals</p>
+                <p className="text-gray-500 text-xs">{referrals} friends invited</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => navigate('/downloads')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <Download size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Downloads</p>
+                <p className="text-gray-500 text-xs">Manage offline content</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Support */}
+        <div className="mb-6">
+          <h3 className="text-gray-500 text-xs uppercase tracking-wider mb-3 px-1">Support</h3>
+          <div className="space-y-1">
+            <button
+              onClick={() => navigate('/support')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <HelpCircle size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Help & Support</p>
+                <p className="text-gray-500 text-xs">Get assistance</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => navigate('/privacy')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <Shield size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Privacy Policy</p>
+                <p className="text-gray-500 text-xs">How we protect your data</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => navigate('/terms')}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                <FileText size={18} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Terms & Conditions</p>
+                <p className="text-gray-500 text-xs">Legal information</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Settings & Logout */}
         <button
-          onClick={() => setActiveOverlay('settings')}
+          onClick={() => navigate('/settings')}
           className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-all mb-4"
         >
           <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
@@ -520,7 +465,6 @@ export default function ProfilePage({ onTermsClick }) {
           <ChevronRight size={16} className="text-gray-600" />
         </button>
 
-        {/* Log out */}
         <button
           onClick={handleLogout}
           className="w-full p-3.5 rounded-xl border border-red-500/20 text-red-400 flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors text-sm"
@@ -529,7 +473,7 @@ export default function ProfilePage({ onTermsClick }) {
           Sign Out
         </button>
 
-        <p className="text-center text-gray-700 text-xs mt-6">
+        <p className="text-center text-gray-700 text-xs mt-6 mb-4">
           Pupa Originals v1.0.0
         </p>
       </div>

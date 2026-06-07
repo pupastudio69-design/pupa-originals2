@@ -5,17 +5,16 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { 
   Play, Star, Clock, TrendingUp, ChevronRight, Search, Bell,
-  Flame, Award, Heart
+  Flame, Award, Heart, MessageSquare
 } from 'lucide-react';
 import {
   ALL_MOVIES, TRENDING, PUPA_ORIGINALS, NEW_RELEASES, 
-  TOP_RATED, COMMUNITY_PICKS
+  TOP_RATED, COMMUNITY_PICKS, FOR_YOU
 } from '../data/movies';
 
 const auth = getAuth();
 const db = getFirestore();
 
-// SVG fallback for broken images
 const FALLBACK_POSTER = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" fill="white" font-size="16" text-anchor="middle" dy=".3em">Pupa</text></svg>';
 
 const FALLBACK_WIDE = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" fill="white" font-size="24" text-anchor="middle" dy=".3em">Pupa Originals</text></svg>';
@@ -35,7 +34,6 @@ function HeroBanner() {
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/60 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a1a]/80 to-transparent" />
       
-      {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-white tracking-tight">PUPA</h1>
         <div className="flex items-center gap-3">
@@ -52,7 +50,6 @@ function HeroBanner() {
         </div>
       </div>
 
-      {/* Movie Info */}
       <div className="absolute bottom-0 left-0 right-0 p-6">
         <div className="flex items-center gap-2 mb-3">
           <span className="px-2 py-0.5 rounded bg-yellow-400/20 text-yellow-400 text-[10px] font-bold">PUPA ORIGINAL</span>
@@ -69,7 +66,7 @@ function HeroBanner() {
         <p className="text-gray-300 text-sm mb-4 line-clamp-2 max-w-sm">{featured.description}</p>
         <div className="flex gap-3">
           <button 
-            onClick={() => navigate(`/watch/${featured.id}`)}
+            onClick={() => navigate(`/movie/${featured.id}`)}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-200 transition-colors"
           >
             <Play size={18} fill="black" />
@@ -149,6 +146,64 @@ function MovieCard({ movie }) {
   );
 }
 
+function ForYouRow() {
+  const navigate = useNavigate();
+  const movies = FOR_YOU();
+
+  return (
+    <section className="mb-6">
+      <div className="flex items-center justify-between px-4 mb-3">
+        <div className="flex items-center gap-2">
+          <Heart size={16} className="text-red-400" />
+          <h2 className="font-semibold text-white text-sm">For You</h2>
+        </div>
+        <button 
+          onClick={() => navigate('/tv-shows')}
+          className="flex items-center gap-1 text-gray-400 text-xs hover:text-white transition-colors"
+        >
+          See All <ChevronRight size={14} />
+        </button>
+      </div>
+      <div className="grid grid-cols-3 gap-2 px-4">
+        {movies.map((movie) => (
+          <div key={movie.id} className="relative group">
+            <button
+              onClick={() => navigate(`/movie/${movie.id}`)}
+              className="text-left w-full"
+            >
+              <div className="relative rounded-lg overflow-hidden aspect-[2/3]">
+                <img
+                  src={movie.poster}
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Like and Comment icons on hover */}
+                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30"
+                  >
+                    <Heart size={14} className="text-white" />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); navigate(`/movie/${movie.id}`); }}
+                    className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30"
+                  >
+                    <MessageSquare size={14} className="text-white" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-white text-[10px] font-medium mt-1 truncate">{movie.title}</p>
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ContinueWatching() {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
@@ -173,7 +228,7 @@ function ContinueWatching() {
         {history.map((item) => (
           <div
             key={item.id}
-            onClick={() => navigate(`/watch/${item.id}`)}
+            onClick={() => navigate(`/movie/${item.id}`)}
             className="flex-shrink-0 cursor-pointer relative group rounded-xl overflow-hidden"
             style={{ width: 160, aspectRatio: '16/9' }}
           >
@@ -277,7 +332,6 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { isSubscribed, isPremium } = useSubscription();
 
-  // Redirect to welcome if not subscribed
   useEffect(() => {
     if (!isSubscribed()) {
       navigate('/welcome');
@@ -299,32 +353,26 @@ export default function HomePage() {
       <div className="pt-4">
         <SubscriptionBanner />
         <ContinueWatching />
+        <ForYouRow />
         
-        {/* Premium: All content. Basic: Limited library */}
         <ContentRow title="Trending Now" movies={TRENDING.slice(0, isPremium() ? 12 : 4)} icon={Flame} />
-        
         <ContentRow title="Popular This Week" movies={ALL_MOVIES.slice(0, isPremium() ? 12 : 4)} icon={TrendingUp} />
-        
-        {/* Premium: Immediate access. Basic: Delayed (older movies only) */}
         <ContentRow 
           title={isPremium() ? "New Releases" : "Recently Added"} 
           movies={isPremium() ? NEW_RELEASES.slice(0, 12) : ALL_MOVIES.slice(8, 12)} 
           icon={Clock} 
         />
         
-        {/* Pupa Originals — Premium only */}
         {isPremium() && (
           <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS.slice(0, 8)} icon={Award} />
         )}
         
         <ContentRow title="Top Rated" movies={TOP_RATED.slice(0, isPremium() ? 12 : 6)} icon={Star} />
         
-        {/* Community Picks — Premium only */}
         {isPremium() && (
           <ContentRow title="Community Picks" movies={COMMUNITY_PICKS.slice(0, 8)} icon={Heart} />
         )}
 
-        {/* Basic plan upgrade prompt */}
         {!isPremium() && (
           <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/20 border border-yellow-500/20">
             <div className="flex items-center gap-3">
