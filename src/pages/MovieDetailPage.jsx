@@ -14,7 +14,10 @@ export default function MovieDetailPage() {
   const { isPremium } = useSubscription();
 
   const [isLiked, setIsLiked] = useState(false);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isInWatchlist, setIsInWatchlist] = useState(() => {
+    const saved = JSON.parse(localStorage.getItem('pupa_watchlist') || '[]');
+    return saved.some(item => item.id === id);
+  });
   const [showShareModal, setShowShareModal] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
@@ -154,6 +157,25 @@ export default function MovieDetailPage() {
     localStorage.setItem(`pupa_reviews_${id}`, JSON.stringify(updated));
   };
 
+  const toggleWatchlist = () => {
+    const saved = JSON.parse(localStorage.getItem('pupa_watchlist') || '[]');
+    if (isInWatchlist) {
+      const updated = saved.filter(item => item.id !== id);
+      localStorage.setItem('pupa_watchlist', JSON.stringify(updated));
+      setIsInWatchlist(false);
+    } else {
+      const movieData = {
+        id: movie.id,
+        title: movie.title,
+        poster: movie.poster,
+        year: movie.year,
+        genre: Array.isArray(movie.genre) ? movie.genre[0] : movie.genre
+      };
+      localStorage.setItem('pupa_watchlist', JSON.stringify([movieData, ...saved]));
+      setIsInWatchlist(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-20">
       {/* Poster / Video Area */}
@@ -199,7 +221,7 @@ export default function MovieDetailPage() {
             <button onClick={() => setIsLiked(!isLiked)} className={`w-10 h-10 rounded-full flex items-center justify-center border ${isLiked ? 'bg-red-500/20 text-red-500 border-red-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
             </button>
-            <button onClick={() => setIsInWatchlist(!isInWatchlist)} className={`w-10 h-10 rounded-full flex items-center justify-center border ${isInWatchlist ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+            <button onClick={toggleWatchlist} className={`w-10 h-10 rounded-full flex items-center justify-center border ${isInWatchlist ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
               {isInWatchlist ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
             </button>
           </div>
