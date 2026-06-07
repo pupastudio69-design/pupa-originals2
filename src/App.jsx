@@ -17,7 +17,6 @@ import TVShowsPage from './pages/TVShowsPage';
 import DownloadsPage from './pages/DownloadsPage';
 import ProfilePage from './pages/ProfilePage';
 import MovieDetailPage from './pages/MovieDetailPage';
-import WatchPage from './pages/WatchPage';
 import SearchPage from './pages/SearchPage';
 import WatchlistPage from './pages/WatchlistPage';
 import RewardsPage from './pages/RewardsPage';
@@ -102,10 +101,9 @@ function MainLayout() {
 
   // Don't show navbar on certain pages
   const isMoviePage = location.pathname.startsWith('/movie/');
-  const isWatchPage = location.pathname.startsWith('/watch/');
   const isWelcomePage = location.pathname === '/welcome';
   const isOnboarding = location.pathname === '/onboarding';
-  const hideNav = isMoviePage || isWatchPage || isWelcomePage || isOnboarding;
+  const hideNav = isMoviePage || isWelcomePage || isOnboarding;
 
   return (
     <div className="relative min-h-screen bg-[#0a0a1a]">
@@ -138,7 +136,6 @@ function MainLayout() {
           <Route path="/downloads" element={<DownloadsPage />} />
           <Route path="/me" element={<ProfilePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
-          <Route path="/watch/:id" element={<WatchPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/watchlist" element={<WatchlistPage />} />
           <Route path="/rewards" element={<RewardsPage />} />
