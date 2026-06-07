@@ -23,7 +23,6 @@ import RewardsPage from './pages/RewardsPage';
 import ReferralsPage from './pages/ReferralsPage';
 import SettingsPage from './pages/SettingsPage';
 import SubscriptionPage from './pages/SubscriptionPage';
-import OnboardingPage from './pages/OnboardingPage';
 
 // Auth
 import LoginPage from './pages/auth/LoginPage';
@@ -101,8 +100,7 @@ function MainLayout() {
   // Don't show navbar on certain pages
   const isMoviePage = location.pathname.startsWith('/movie/');
   const isWelcomePage = location.pathname === '/welcome';
-  const isOnboarding = location.pathname === '/onboarding';
-  const hideNav = isMoviePage || isWelcomePage || isOnboarding;
+  const hideNav = isMoviePage || isWelcomePage;
 
   return (
     <div className="relative min-h-screen bg-[#0a0a1a]">
@@ -141,7 +139,6 @@ function MainLayout() {
           <Route path="/referrals" element={<ReferralsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
-          <Route path="/creator-corner" element={<CreatorCornerPage />} />
           <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/support" element={<SupportPage />} />
@@ -193,11 +190,6 @@ export default function App() {
                 <WelcomePage />
               </AuthGuard>
             } />
-            <Route path="/onboarding" element={
-              <AuthGuard>
-                <OnboardingPage />
-              </AuthGuard>
-            } />
             <Route
               path="/*"
               element={
@@ -213,4 +205,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
