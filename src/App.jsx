@@ -4,22 +4,39 @@ import { Analytics } from '@vercel/analytics/react';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { auth, app } from './firebase';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import SplashScreen from './components/SplashScreen';
 import TopNavbar from './components/TopNavbar';
 import BottomNavbar from './components/BottomNavbar';
 import SearchOverlay from './components/SearchOverlay';
 import CategoriesOverlay from './components/CategoriesOverlay';
+
+// Pages
 import HomePage from './pages/HomePage';
-import MovieDetailPage from './pages/MovieDetailPage';
-import ExplorePage from './pages/ExplorePage';
+import TVShowsPage from './pages/TVShowsPage';
 import DownloadsPage from './pages/DownloadsPage';
 import ProfilePage from './pages/ProfilePage';
-import TermsPage from './pages/TermsPage';
+import MovieDetailPage from './pages/MovieDetailPage';
+import WatchPage from './pages/WatchPage';
+import SearchPage from './pages/SearchPage';
+import WatchlistPage from './pages/WatchlistPage';
+import RewardsPage from './pages/RewardsPage';
+import ReferralsPage from './pages/ReferralsPage';
+import SettingsPage from './pages/SettingsPage';
+import SubscriptionPage from './pages/SubscriptionPage';
+import OnboardingPage from './pages/OnboardingPage';
+import CreatorCornerPage from './pages/CreatorCornerPage';
+
+// Auth
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import WelcomePage from './pages/WelcomePage';
+
+// Legal
+import TermsPage from './pages/TermsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import SupportPage from './pages/SupportPage';
+import ContactPage from './pages/ContactPage';
 
 // Initialize Firebase Messaging
 let messaging = null;
@@ -29,43 +46,21 @@ try {
   console.log('Firebase Messaging not available:', err);
 }
 
-// Check if user has active subscription or trial
-function hasActiveSubscription() {
-  const sub = localStorage.getItem('pupa_subscription');
-  if (!sub) return false;
-  try {
-    const data = JSON.parse(sub);
-    const now = new Date();
-    const expiry = new Date(data.expiryDate);
-    return expiry > now;
-  } catch {
-    return false;
-  }
-}
-
 function MainLayout() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Redirect to welcome if no active subscription
-  useEffect(() => {
-    if (user && !hasActiveSubscription() && location.pathname !== '/welcome') {
-      navigate('/welcome');
-    }
-  }, [user, location.pathname, navigate]);
 
   // Sync active tab with URL
   useEffect(() => {
     const path = location.pathname;
     if (path === '/' || path === '/home') setActiveTab('home');
-    else if (path === '/explore') setActiveTab('explore');
+    else if (path === '/tv-shows') setActiveTab('tv-shows');
     else if (path === '/downloads') setActiveTab('downloads');
-    else if (path === '/profile') setActiveTab('profile');
+    else if (path === '/me') setActiveTab('me');
   }, [location.pathname]);
 
   // Request push notification permission
@@ -76,9 +71,7 @@ function MainLayout() {
           getToken(messaging, { 
             vapidKey: 'BBuCrYyn4gFgcFJUgdX7SYq1OID0UxJehqa4NRk47etntA4-oQOHIdpu0QDptCqum7jLLu5Tvqqdl3nEPXiR-Y0' 
           })
-            .then((token) => {
-              console.log('Push notification token:', token);
-            })
+            .then((token) => console.log('Push token:', token))
             .catch((err) => console.log('Token error:', err));
         }
       });
@@ -99,40 +92,23 @@ function MainLayout() {
     setActiveTab(tab);
     switch (tab) {
       case 'home': navigate('/'); break;
-      case 'explore': navigate('/explore'); break;
+      case 'tv-shows': navigate('/tv-shows'); break;
       case 'downloads': navigate('/downloads'); break;
-      case 'profile': navigate('/profile'); break;
+      case 'me': navigate('/me'); break;
     }
   };
 
-  const handleCategoriesOpen = () => {
-    setCategoriesOpen(true);
-  };
+  const handleCategoriesOpen = () => setCategoriesOpen(true);
 
-  const handleTermsClick = () => {
-    setShowTerms(true);
-  };
-
-  const handleTermsBack = () => {
-    setShowTerms(false);
-  };
-
-  // Don't show navbar on movie detail pages or welcome page
+  // Don't show navbar on certain pages
   const isMoviePage = location.pathname.startsWith('/movie/');
+  const isWatchPage = location.pathname.startsWith('/watch/');
   const isWelcomePage = location.pathname === '/welcome';
-
-  if (showTerms) {
-    return (
-      <div className="relative min-h-screen bg-pupa-bg">
-        <TopNavbar onSearchOpen={() => setSearchOpen(true)} />
-        <TermsPage onBack={handleTermsBack} />
-        <BottomNavbar active={activeTab} onChange={handleTabChange} />
-      </div>
-    );
-  }
+  const isOnboarding = location.pathname === '/onboarding';
+  const hideNav = isMoviePage || isWatchPage || isWelcomePage || isOnboarding;
 
   return (
-    <div className="relative min-h-screen bg-pupa-bg noise">
+    <div className="relative min-h-screen bg-[#0a0a1a]">
       {searchOpen && (
         <SearchOverlay
           onClose={() => setSearchOpen(false)}
@@ -153,22 +129,32 @@ function MainLayout() {
         />
       )}
 
-      {!isMoviePage && !isWelcomePage && <TopNavbar onSearchOpen={() => setSearchOpen(true)} />}
+      {!hideNav && <TopNavbar onSearchOpen={() => setSearchOpen(true)} />}
 
       <main>
         <Routes>
           <Route path="/" element={<HomePage onCategoriesOpen={handleCategoriesOpen} />} />
-          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/tv-shows" element={<TVShowsPage />} />
           <Route path="/downloads" element={<DownloadsPage />} />
-          <Route path="/profile" element={<ProfilePage onTermsClick={handleTermsClick} />} />
+          <Route path="/me" element={<ProfilePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
+          <Route path="/watch/:id" element={<WatchPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/watchlist" element={<WatchlistPage />} />
+          <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/referrals" element={<ReferralsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/subscription" element={<SubscriptionPage />} />
+          <Route path="/creator-corner" element={<CreatorCornerPage />} />
           <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
         </Routes>
       </main>
 
-      {!isMoviePage && !isWelcomePage && <BottomNavbar active={activeTab} onChange={handleTabChange} />}
+      {!hideNav && <BottomNavbar active={activeTab} onChange={handleTabChange} />}
     </div>
   );
 }
@@ -179,8 +165,8 @@ function AuthGuard({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pupa-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -202,24 +188,31 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/welcome" element={
-            <AuthGuard>
-              <WelcomePage />
-            </AuthGuard>
-          } />
-          <Route
-            path="/*"
-            element={
+        <SubscriptionProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/welcome" element={
               <AuthGuard>
-                <MainLayout />
+                <WelcomePage />
               </AuthGuard>
-            }
-          />
-        </Routes>
-        <Analytics />
+            } />
+            <Route path="/onboarding" element={
+              <AuthGuard>
+                <OnboardingPage />
+              </AuthGuard>
+            } />
+            <Route
+              path="/*"
+              element={
+                <AuthGuard>
+                  <MainLayout />
+                </AuthGuard>
+              }
+            />
+          </Routes>
+          <Analytics />
+        </SubscriptionProvider>
       </AuthProvider>
     </BrowserRouter>
   );
