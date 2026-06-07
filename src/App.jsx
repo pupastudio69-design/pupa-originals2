@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
@@ -24,7 +24,6 @@ import ReferralsPage from './pages/ReferralsPage';
 import SettingsPage from './pages/SettingsPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import OnboardingPage from './pages/OnboardingPage';
-import CreatorCornerPage from './pages/CreatorCornerPage';
 
 // Auth
 import LoginPage from './pages/auth/LoginPage';
@@ -214,3 +213,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
