@@ -275,8 +275,7 @@ function SubscriptionBanner() {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, isPremium } = useSubscription();
 
   // Redirect to welcome if not subscribed
   useEffect(() => {
@@ -301,12 +300,50 @@ export default function HomePage() {
         <SubscriptionBanner />
         <ContinueWatching />
         
-        <ContentRow title="Trending Now" movies={TRENDING.slice(0, 8)} icon={Flame} />
-        <ContentRow title="Popular This Week" movies={ALL_MOVIES.slice(0, 8)} icon={TrendingUp} />
-        <ContentRow title="New Releases" movies={NEW_RELEASES.slice(0, 8)} icon={Clock} />
-        <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS.slice(0, 8)} icon={Award} />
-        <ContentRow title="Top Rated" movies={TOP_RATED.slice(0, 8)} icon={Star} />
-        <ContentRow title="Community Picks" movies={COMMUNITY_PICKS.slice(0, 8)} icon={Heart} />
+        {/* Premium: All content. Basic: Limited library */}
+        <ContentRow title="Trending Now" movies={TRENDING.slice(0, isPremium() ? 12 : 4)} icon={Flame} />
+        
+        <ContentRow title="Popular This Week" movies={ALL_MOVIES.slice(0, isPremium() ? 12 : 4)} icon={TrendingUp} />
+        
+        {/* Premium: Immediate access. Basic: Delayed (older movies only) */}
+        <ContentRow 
+          title={isPremium() ? "New Releases" : "Recently Added"} 
+          movies={isPremium() ? NEW_RELEASES.slice(0, 12) : ALL_MOVIES.slice(8, 12)} 
+          icon={Clock} 
+        />
+        
+        {/* Pupa Originals — Premium only */}
+        {isPremium() && (
+          <ContentRow title="Pupa Originals" movies={PUPA_ORIGINALS.slice(0, 8)} icon={Award} />
+        )}
+        
+        <ContentRow title="Top Rated" movies={TOP_RATED.slice(0, isPremium() ? 12 : 6)} icon={Star} />
+        
+        {/* Community Picks — Premium only */}
+        {isPremium() && (
+          <ContentRow title="Community Picks" movies={COMMUNITY_PICKS.slice(0, 8)} icon={Heart} />
+        )}
+
+        {/* Basic plan upgrade prompt */}
+        {!isPremium() && (
+          <div className="mx-4 mb-6 rounded-xl p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/20 border border-yellow-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                <Award size={20} className="text-yellow-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-semibold">Upgrade to Premium</p>
+                <p className="text-gray-400 text-xs">Unlock 4K, unlimited downloads, and exclusive content</p>
+              </div>
+              <button 
+                onClick={() => navigate('/welcome')}
+                className="px-4 py-2 rounded-lg bg-yellow-400 text-black text-xs font-bold"
+              >
+                Upgrade
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

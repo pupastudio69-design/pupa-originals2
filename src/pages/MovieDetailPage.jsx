@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, ALL_MOVIES } from '../data/movies.js';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { 
-  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, AlertTriangle
+  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, AlertTriangle, Crown
 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 
@@ -10,6 +11,7 @@ export default function MovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const movie = getMovieById(id);
+  const { isPremium } = useSubscription();
 
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
@@ -146,11 +148,20 @@ export default function MovieDetailPage() {
           <span className="text-gray-500 text-sm">({movie.likes?.toLocaleString()} likes)</span>
         </div>
 
-        {/* Watch Button */}
+        {/* Watch Button - Premium check for exclusive content */}
         {!showVideo && (
-          <button onClick={() => setShowVideo(true)} className="w-full py-3 bg-white rounded-xl text-black font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors mb-4">
-            <Play className="w-5 h-5 fill-black" /> Watch Now
-          </button>
+          <>
+            {movie.isPupaOriginal && !isPremium() ? (
+              <div className="w-full py-3 bg-yellow-400/20 border border-yellow-400/30 rounded-xl text-yellow-400 font-bold flex items-center justify-center gap-2 mb-4">
+                <Crown size={18} />
+                Premium Only — Upgrade to Watch
+              </div>
+            ) : (
+              <button onClick={() => setShowVideo(true)} className="w-full py-3 bg-white rounded-xl text-black font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors mb-4">
+                <Play className="w-5 h-5 fill-black" /> Watch Now
+              </button>
+            )}
+          </>
         )}
 
         {/* Genre Tags */}
