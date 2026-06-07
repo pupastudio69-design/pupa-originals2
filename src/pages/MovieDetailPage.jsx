@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, ALL_MOVIES } from '../data/movies.js';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { 
-  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, AlertTriangle, Crown
+  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, AlertTriangle, Crown, MessageSquare
 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 
@@ -24,6 +24,12 @@ export default function MovieDetailPage() {
   const [user, setUser] = useState(null);
   const [showVideo, setShowVideo] = useState(false);
   const [hasWatched, setHasWatched] = useState(false);
+  const [reviews, setReviews] = useState(() => {
+    const saved = localStorage.getItem(`pupa_reviews_${id}`);
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 0, text: '' });
 
   useEffect(() => {
     const auth = getAuth();
@@ -89,6 +95,64 @@ export default function MovieDetailPage() {
   }
 
   const relatedMovies = getRelatedMovies();
+
+  const submitReview = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (newReview.rating === 0) {
+      alert('Please select a star rating');
+      return;
+    }
+    if (!newReview.text.trim()) {
+      alert('Please write a review');
+      return;
+    }
+
+    const review = {
+      id: Date.now().toString(),
+      userId: user.uid,
+      userName: user.displayName || user.email?.split('@')[0] || 'User',
+      userPhoto: user.photoURL,
+      rating: newReview.rating,
+      text: newReview.text.trim(),
+      date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }),
+      likes: 0,
+      dislikes: 0,
+      liked: false,
+      disliked: false,
+      isPremium: false
+    };
+
+    const updated = [review, ...reviews];
+    setReviews(updated);
+    localStorage.setItem(`pupa_reviews_${id}`, JSON.stringify(updated));
+    setShowReviewForm(false);
+    setNewReview({ rating: 0, text: '' });
+  };
+
+  const toggleReviewLike = (reviewId) => {
+    const updated = reviews.map(r => {
+      if (r.id === reviewId) {
+        return { ...r, liked: !r.liked, likes: r.liked ? (r.likes - 1) : (r.likes + 1) };
+      }
+      return r;
+    });
+    setReviews(updated);
+    localStorage.setItem(`pupa_reviews_${id}`, JSON.stringify(updated));
+  };
+
+  const toggleReviewDislike = (reviewId) => {
+    const updated = reviews.map(r => {
+      if (r.id === reviewId) {
+        return { ...r, disliked: !r.disliked, dislikes: r.disliked ? (r.dislikes - 1) : (r.dislikes + 1) };
+      }
+      return r;
+    });
+    setReviews(updated);
+    localStorage.setItem(`pupa_reviews_${id}`, JSON.stringify(updated));
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-20">
@@ -216,7 +280,173 @@ export default function MovieDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Community Reviews */}
+        <div className="px-4 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
+              <MessageSquare size={16} className="text-emerald-400" />
+              Community Reviews
+            </h3>
+            <button 
+              onClick={() => setShowReviewForm(true)}
+              className="text-yellow-400 text-xs font-medium"
+            >
+              Write a Review
+            </button>
+          </div>
+
+          {/* Average Rating */}
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{movie.rating || '4.5'}</p>
+                <div className="flex items-center gap-0.5 mt-1">
+                  {[1,2,3,4,5].map(star => (
+                    <Star 
+                      key={star} 
+                      size={12} 
+                      className={star <= Math.round(movie.rating || 4.5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'} 
+                    />
+                  ))}
+                </div>
+                <p className="text-gray-500 text-[10px] mt-1">{reviews.length} reviews</p>
+              </div>
+              <div className="flex-1 space-y-1">
+                {[5,4,3,2,1].map(stars => {
+                  const count = reviews.filter(r => r.rating === stars).length;
+                  const pct = reviews.length ? (count / reviews.length) * 100 : 0;
+                  return (
+                    <div key={stars} className="flex items-center gap-2">
+                      <span className="text-gray-500 text-[10px] w-3">{stars}</span>
+                      <Star size={10} className="text-gray-600" />
+                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-gray-500 text-[10px] w-6 text-right">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Review List */}
+          <div className="space-y-3">
+            {reviews.map((review) => (
+              <div key={review.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-800 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{review.userName?.[0]?.toUpperCase() || 'U'}</span>
+                    </div>
+                    <div>
+                      <p className="text-white text-xs font-medium">{review.userName || 'User'}</p>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map(star => (
+                          <Star 
+                            key={star} 
+                            size={10} 
+                            className={star <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'} 
+                          />
+                        ))}
+                        <span className="text-gray-500 text-[10px] ml-1">{review.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {review.isPremium && (
+                    <span className="text-[10px] text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">Premium</span>
+                  )}
+                </div>
+                <p className="text-gray-300 text-sm mb-3">{review.text}</p>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => toggleReviewLike(review.id)}
+                    className="flex items-center gap-1 text-gray-500 text-xs hover:text-emerald-400"
+                  >
+                    <ThumbsUp size={12} className={review.liked ? 'text-emerald-400 fill-emerald-400' : ''} />
+                    {review.likes || 0}
+                  </button>
+                  <button 
+                    onClick={() => toggleReviewDislike(review.id)}
+                    className="flex items-center gap-1 text-gray-500 text-xs hover:text-red-400"
+                  >
+                    <ThumbsDown size={12} className={review.disliked ? 'text-red-400 fill-red-400' : ''} />
+                    {review.dislikes || 0}
+                  </button>
+                  <span className="text-gray-600 text-xs">Was this helpful?</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {reviews.length === 0 && (
+            <div className="text-center py-8">
+              <MessageSquare size={32} className="text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">No reviews yet</p>
+              <p className="text-gray-600 text-xs">Be the first to review this movie</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Write Review Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-[#1a1a2e] rounded-2xl p-6 w-full max-w-sm border border-gray-800">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold">Write a Review</h3>
+              <button onClick={() => setShowReviewForm(false)} className="text-gray-400">
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-gray-400 text-xs mb-3">{movie.title}</p>
+
+            {/* Star Rating */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              {[1,2,3,4,5].map(star => (
+                <button
+                  key={star}
+                  onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                  className="p-1"
+                >
+                  <Star 
+                    size={28} 
+                    className={star <= newReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'} 
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-gray-500 text-xs mb-4">
+              {newReview.rating === 1 ? 'Terrible' :
+               newReview.rating === 2 ? 'Bad' :
+               newReview.rating === 3 ? 'Okay' :
+               newReview.rating === 4 ? 'Good' :
+               newReview.rating === 5 ? 'Excellent' : 'Tap a star to rate'}
+            </p>
+
+            {/* Review Text */}
+            <textarea
+              value={newReview.text}
+              onChange={(e) => setNewReview(prev => ({ ...prev, text: e.target.value }))}
+              placeholder="Share your thoughts about this movie..."
+              className="w-full p-3 rounded-xl bg-gray-800 text-white text-sm placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-emerald-500 resize-none mb-4"
+              rows={4}
+              maxLength={500}
+            />
+            <p className="text-gray-600 text-[10px] text-right mb-4">{newReview.text.length}/500</p>
+
+            <button
+              onClick={submitReview}
+              disabled={newReview.rating === 0 || !newReview.text.trim()}
+              className="w-full py-3 bg-emerald-600 rounded-xl text-white font-bold disabled:opacity-50"
+            >
+              Submit Review
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Feedback Modal - After Watching */}
       {showFeedback && (

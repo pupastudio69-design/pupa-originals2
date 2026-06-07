@@ -265,6 +265,11 @@ export default function ProfilePage({ onTermsClick }) {
   const getUserName = () => displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Pupa Member';
   const getAvatarLetter = () => getUserName().charAt(0).toUpperCase();
 
+  // Rewards and referral data
+  const points = parseInt(localStorage.getItem('pupa_points') || '0');
+  const referrals = parseInt(localStorage.getItem('pupa_referral_count') || '0');
+  const tier = points >= 1000 ? 'Platinum' : points >= 500 ? 'Gold' : points >= 200 ? 'Silver' : 'Bronze';
+
   // Small checkmark badge next to name like X/Twitter verification
   const MembershipBadge = () => {
     if (!subscription) return null;
@@ -330,12 +335,33 @@ export default function ProfilePage({ onTermsClick }) {
       ]
     },
     {
-      title: 'Future Features',
+      title: 'Rewards & Referrals',
       items: [
-        { icon: Gift, label: 'Rewards', sub: 'Coming Soon', disabled: true, onClick: () => {} },
-        { icon: Star, label: 'Referrals', sub: 'Coming Soon', disabled: true, onClick: () => {} },
-        { icon: Wallet, label: 'Wallet', sub: 'Coming Soon', disabled: true, onClick: () => {} },
-        { icon: Download, label: 'Downloads', sub: 'Coming Soon', disabled: true, onClick: () => {} },
+        { 
+          icon: Gift, 
+          label: 'Rewards', 
+          sub: `${points} points · ${tier} tier`, 
+          onClick: () => navigate('/rewards')
+        },
+        { 
+          icon: Star, 
+          label: 'Referrals', 
+          sub: `${referrals} friends invited`, 
+          onClick: () => navigate('/referrals')
+        },
+        { 
+          icon: Wallet, 
+          label: 'Wallet', 
+          sub: 'Coming Soon', 
+          disabled: true, 
+          onClick: () => {} 
+        },
+        { 
+          icon: Download, 
+          label: 'Downloads', 
+          sub: 'Manage offline content', 
+          onClick: () => navigate('/downloads')
+        },
       ]
     },
     {
