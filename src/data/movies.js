@@ -1,4 +1,3 @@
-
 // PUPA Originals - Content Data
 // Replace poster URLs with your Bunny CDN links when ready
 
@@ -20,7 +19,8 @@ export const TEST_VIDEO = {
   cast: ['Test Actor 1', 'Test Actor 2'],
   director: 'Test Director',
   isNew: true,
-  isPupaOriginal: true
+  isPupaOriginal: true,
+  type: 'movie'
 };
 
 export const ALL_MOVIES = [
@@ -39,7 +39,8 @@ export const ALL_MOVIES = [
     cast: ['Actor A', 'Actor B'],
     director: 'Director Name',
     isNew: i < 5,
-    isPupaOriginal: i === 0
+    isPupaOriginal: i === 0,
+    type: 'movie'
   }))
 ];
 
@@ -55,19 +56,35 @@ export const FOR_YOU = (userHistory = []) => {
   return ALL_MOVIES.filter(m => userHistory.some(h => m.genre.includes(h))).slice(0, 8);
 };
 
-export const TV_SHOWS = Array.from({ length: 10 }, (_, i) => ({
+// TV Shows with episodes and file sizes
+export const TV_SHOWS = Array.from({ length: 12 }, (_, i) => ({
   id: `show-${i}`,
-  title: `Show ${i + 1}`,
-  type: 'series',
+  title: `TV Show ${i + 1}`,
+  type: 'tv',
   seasons: 2,
-  episodes: 12,
+  totalEpisodes: 12,
   description: 'Coming soon to PUPA Originals.',
   poster: `https://placehold.co/300x450/1a1a2e/${getRandomColor()}?text=Show+${i + 1}`,
   backdrop: `https://placehold.co/800x450/1a1a2e/${getRandomColor()}?text=Show+${i + 1}`,
   year: '2024',
   genre: ['Drama'],
   rating: 4.0 + Math.random() * 1.5,
-  isNew: i < 3
+  isNew: i < 3,
+  isPupaOriginal: i === 0,
+  episodes: [
+    { number: 1, title: 'Pilot', size: '176.8MB', duration: '45:00' },
+    { number: 2, title: 'The Next Day', size: '169.6MB', duration: '42:00' },
+    { number: 3, title: 'New Beginnings', size: '182.3MB', duration: '48:00' },
+    { number: 4, title: 'The Truth', size: '175.1MB', duration: '46:00' },
+    { number: 5, title: 'Crossroads', size: '168.9MB', duration: '44:00' },
+    { number: 6, title: 'Revelations', size: '190.2MB', duration: '50:00' },
+    { number: 7, title: 'The Plan', size: '171.4MB', duration: '43:00' },
+    { number: 8, title: 'Dark Night', size: '185.7MB', duration: '47:00' },
+    { number: 9, title: 'Allies', size: '164.3MB', duration: '41:00' },
+    { number: 10, title: 'Betrayal', size: '178.5MB', duration: '45:00' },
+    { number: 11, title: 'The Escape', size: '173.2MB', duration: '44:00' },
+    { number: 12, title: 'Finale', size: '195.8MB', duration: '52:00' }
+  ]
 }));
 
 export const DOCUMENTARIES = Array.from({ length: 8 }, (_, i) => ({
@@ -96,7 +113,17 @@ export const ENTERTAINMENT = Array.from({ length: 8 }, (_, i) => ({
   duration: '1:00:00'
 }));
 
+// Upcoming Calendar - placeholder data
+export const UPCOMING = [
+  { id: 'up-1', title: 'Lagos Nights', type: 'movie', releaseDate: '2026-06-15', poster: 'https://placehold.co/300x450/1a1a2e/FF6B6B?text=Lagos+Nights' },
+  { id: 'up-2', title: 'Queen of Benin', type: 'tv', releaseDate: '2026-06-20', poster: 'https://placehold.co/300x450/1a1a2e/4ECDC4?text=Queen+of+Benin' },
+  { id: 'up-3', title: 'Afrobeats Rising', type: 'movie', releaseDate: '2026-06-25', poster: 'https://placehold.co/300x450/1a1a2e/FFEAA7?text=Afrobeats' },
+  { id: 'up-4', title: 'The Last Warrior', type: 'tv', releaseDate: '2026-07-01', poster: 'https://placehold.co/300x450/1a1a2e/DDA0DD?text=Last+Warrior' },
+  { id: 'up-5', title: 'Nollywood Dreams', type: 'movie', releaseDate: '2026-07-05', poster: 'https://placehold.co/300x450/1a1a2e/96CEB4?text=Nollywood' },
+  { id: 'up-6', title: 'Island Life', type: 'tv', releaseDate: '2026-07-10', poster: 'https://placehold.co/300x450/1a1a2e/85C1E9?text=Island+Life' }
+];
+
 export const getMovieById = (id) => {
-  const allContent = [...ALL_MOVIES, ...TV_SHOWS, ...DOCUMENTARIES, ...ENTERTAINMENT];
+  const allContent = [...ALL_MOVIES, ...TV_SHOWS, ...DOCUMENTARIES, ...ENTERTAINMENT, ...UPCOMING];
   return allContent.find(item => item.id === id);
 };

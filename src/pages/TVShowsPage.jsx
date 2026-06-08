@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Tv, Film, BookOpen, Sparkles } from 'lucide-react';
+import { TV_SHOWS, ALL_MOVIES, DOCUMENTARIES, ENTERTAINMENT } from '../data/movies';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', icon: Sparkles },
@@ -11,31 +12,13 @@ const CATEGORIES = [
 ];
 
 const CONTENT_TYPES = {
-  movies: [
-    { id: 'm1', title: 'Movie 1', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+1', year: '2024', genre: 'Drama', rating: 4.5 },
-    { id: 'm2', title: 'Movie 2', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+2', year: '2024', genre: 'Action', rating: 4.2 },
-    { id: 'm3', title: 'Movie 3', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+3', year: '2024', genre: 'Comedy', rating: 4.0 },
-    { id: 'm4', title: 'Movie 4', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+4', year: '2024', genre: 'Thriller', rating: 4.7 },
-    { id: 'm5', title: 'Movie 5', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+5', year: '2024', genre: 'Drama', rating: 4.3 },
-    { id: 'm6', title: 'Movie 6', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Movie+6', year: '2024', genre: 'Romance', rating: 4.1 },
-  ],
-  'tv-shows': [
-    { id: 's1', title: 'Show 1', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Show+1', year: '2024', genre: 'Drama', rating: 4.5, episodes: 12 },
-    { id: 's2', title: 'Show 2', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Show+2', year: '2024', genre: 'Comedy', rating: 4.2, episodes: 8 },
-    { id: 's3', title: 'Show 3', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Show+3', year: '2024', genre: 'Thriller', rating: 4.7, episodes: 10 },
-    { id: 's4', title: 'Show 4', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Show+4', year: '2024', genre: 'Action', rating: 4.0, episodes: 15 },
-  ],
-  documentaries: [
-    { id: 'd1', title: 'Documentary 1', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Doc+1', year: '2024', genre: 'Documentary', rating: 4.8 },
-    { id: 'd2', title: 'Documentary 2', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Doc+2', year: '2024', genre: 'Documentary', rating: 4.5 },
-    { id: 'd3', title: 'Documentary 3', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Doc+3', year: '2024', genre: 'Documentary', rating: 4.3 },
-  ],
-  entertainment: [
-    { id: 'e1', title: 'Entertainment 1', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Ent+1', year: '2024', genre: 'Entertainment', rating: 4.2 },
-    { id: 'e2', title: 'Entertainment 2', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Ent+2', year: '2024', genre: 'Entertainment', rating: 4.0 },
-    { id: 'e3', title: 'Entertainment 3', poster: 'https://placehold.co/300x450/1a1a2e/666666?text=Ent+3', year: '2024', genre: 'Entertainment', rating: 4.5 },
-  ]
+  movies: ALL_MOVIES.slice(0, 8),
+  'tv-shows': TV_SHOWS,
+  documentaries: DOCUMENTARIES,
+  entertainment: ENTERTAINMENT
 };
+
+const FALLBACK_WIDE = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" fill="white" font-size="24" text-anchor="middle" dy=".3em">Pupa Originals</text></svg>';
 
 export default function TVShowsPage() {
   const navigate = useNavigate();
@@ -58,7 +41,7 @@ export default function TVShowsPage() {
       {/* Header */}
       <div className="px-4 mb-4">
         <h1 className="text-xl font-bold text-white mb-4">TV & Shows</h1>
-        
+
         {/* Search Bar */}
         <div className="relative mb-4">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -90,38 +73,53 @@ export default function TVShowsPage() {
         </div>
       </div>
 
-      {/* Content Grid */}
+      {/* Content Grid - 3 columns with 16:9 cards */}
       <div className="px-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {filteredContent.map((item) => (
             <button
               key={item.id}
-              onClick={() => item.youtubeId ? navigate(`/watch/${item.id}`) : navigate(`/movie/${item.id}`)}
+              onClick={() => navigate(`/movie/${item.id}`)}
               className="text-left group"
             >
-              <div className="relative rounded-xl overflow-hidden mb-2 aspect-[2/3]">
+              <div className="relative rounded-xl overflow-hidden mb-1.5 aspect-video">
                 <img
-                  src={item.poster}
+                  src={item.backdrop || item.poster}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => { e.target.src = FALLBACK_WIDE; }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
                 {/* Rating Badge */}
-                <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                  <span className="text-yellow-400 text-[10px]">★</span>
-                  <span className="text-white text-[10px] font-medium">{item.rating}</span>
+                <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1 py-0.5">
+                  <span className="text-yellow-400 text-[8px]">★</span>
+                  <span className="text-white text-[8px] font-medium">{item.rating?.toFixed(1) || '4.5'}</span>
                 </div>
 
-                {/* Episodes Badge for Shows */}
-                {item.episodes && (
-                  <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-emerald-500/80 text-white text-[9px] font-bold">
-                    {item.episodes} EP
+                {/* Type Badge */}
+                <div className="absolute top-1.5 left-1.5 px-1 py-0.5 rounded bg-black/50 backdrop-blur-sm text-white text-[7px] font-bold">
+                  {item.type === 'tv' ? 'TV' : item.type === 'movie' ? 'MOVIE' : item.type?.toUpperCase() || 'VIDEO'}
+                </div>
+
+                {/* Episodes Badge for TV Shows */}
+                {item.type === 'tv' && (
+                  <div className="absolute bottom-1.5 left-1.5 px-1 py-0.5 rounded bg-emerald-500/80 text-white text-[7px] font-bold">
+                    {item.totalEpisodes || item.episodes?.length || 12} EP
                   </div>
                 )}
+
+                {/* Play icon on hover */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 2l9 5-9 5V2z" fill="white" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-white text-xs font-medium truncate">{item.title}</h3>
-              <p className="text-gray-500 text-[10px]">{item.year} · {item.genre}</p>
+              <h3 className="text-white text-[10px] font-medium truncate leading-tight">{item.title}</h3>
+              <p className="text-gray-500 text-[8px] mt-0.5">{item.year} · {Array.isArray(item.genre) ? item.genre[0] : item.genre}</p>
             </button>
           ))}
         </div>

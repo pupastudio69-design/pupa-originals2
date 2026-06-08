@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getMovieById, ALL_MOVIES } from '../data/movies';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { 
-  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, Crown, MessageSquare, Send
+  ArrowLeft, Heart, Share2, Download, Plus, Check, Star, Clock, Calendar, Users, Play, X, ThumbsUp, ThumbsDown, Crown, MessageSquare, Send, ChevronDown, ChevronUp, Tv, Film
 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 
@@ -22,7 +22,7 @@ export default function MovieDetailPage() {
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState(null);
   const [showVideo, setShowVideo] = useState(false);
-  
+
   // Reviews
   const [reviews, setReviews] = useState(() => {
     const saved = localStorage.getItem(`pupa_reviews_${id}`);
@@ -30,14 +30,23 @@ export default function MovieDetailPage() {
   });
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 0, text: '' });
-  
-  // Comments
+
+  // Comments with replies (YouTube-style)
   const [comments, setComments] = useState(() => {
     const saved = localStorage.getItem(`pupa_comments_${id}`);
     return saved ? JSON.parse(saved) : [];
   });
   const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [expandedReplies, setExpandedReplies] = useState({});
   const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' or 'comments'
+
+  // Episode downloads
+  const [downloadedEpisodes, setDownloadedEpisodes] = useState(() => {
+    const saved = localStorage.getItem(`pupa_downloads_${id}`);
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     const auth = getAuth();
@@ -85,6 +94,7 @@ export default function MovieDetailPage() {
   }
 
   const relatedMovies = getRelatedMovies();
+  const isTVShow = movie.type === 'tv' || movie.type === 'series';
 
   const submitReview = () => {
     if (!user) {
@@ -144,6 +154,7 @@ export default function MovieDetailPage() {
     localStorage.setItem(`pupa_reviews_${id}`, JSON.stringify(updated));
   };
 
+  // YouTube-style comments with replies
   const submitComment = () => {
     if (!user) {
       navigate('/login');
@@ -159,7 +170,8 @@ export default function MovieDetailPage() {
       text: newComment.trim(),
       date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }),
       likes: 0,
-      liked: false
+      liked: false,
+      replies: []
     };
 
     const updated = [comment, ...comments];
@@ -168,15 +180,72 @@ export default function MovieDetailPage() {
     setNewComment('');
   };
 
-  const toggleCommentLike = (commentId) => {
+  const submitReply = (commentId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!replyText.trim()) return;
+
+    const reply = {
+      id: Date.now().toString(),
+      userId: user.uid,
+      userName: user.displayName || user.email?.split('@')[0] || 'User',
+      userPhoto: user.photoURL,
+      text: replyText.trim(),
+      date: new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }),
+      likes: 0,
+      liked: false
+    };
+
     const updated = comments.map(c => {
       if (c.id === commentId) {
-        return { ...c, liked: !c.liked, likes: c.liked ? (c.likes - 1) : (c.likes + 1) };
+        return { ...c, replies: [...(c.replies || []), reply] };
       }
       return c;
     });
+
     setComments(updated);
     localStorage.setItem(`pupa_comments_${id}`, JSON.stringify(updated));
+    setReplyText('');
+    setReplyingTo(null);
+  };
+
+  const toggleCommentLike = (commentId, isReply = false, parentId = null) => {
+    if (isReply && parentId) {
+      const updated = comments.map(c => {
+        if (c.id === parentId) {
+          return {
+            ...c,
+            replies: c.replies.map(r => {
+              if (r.id === commentId) {
+                return { ...r, liked: !r.liked, likes: r.liked ? (r.likes - 1) : (r.likes + 1) };
+              }
+              return r;
+            })
+          };
+        }
+        return c;
+      });
+      setComments(updated);
+      localStorage.setItem(`pupa_comments_${id}`, JSON.stringify(updated));
+    } else {
+      const updated = comments.map(c => {
+        if (c.id === commentId) {
+          return { ...c, liked: !c.liked, likes: c.liked ? (c.likes - 1) : (c.likes + 1) };
+        }
+        return c;
+      });
+      setComments(updated);
+      localStorage.setItem(`pupa_comments_${id}`, JSON.stringify(updated));
+    }
+  };
+
+  const toggleReplies = (commentId) => {
+    setExpandedReplies(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
   };
 
   const toggleWatchlist = () => {
@@ -198,13 +267,24 @@ export default function MovieDetailPage() {
     }
   };
 
+  // Episode download handlers
+  const toggleEpisodeDownload = (episodeNumber) => {
+    const updated = downloadedEpisodes.includes(episodeNumber)
+      ? downloadedEpisodes.filter(n => n !== episodeNumber)
+      : [...downloadedEpisodes, episodeNumber];
+    setDownloadedEpisodes(updated);
+    localStorage.setItem(`pupa_downloads_${id}`, JSON.stringify(updated));
+  };
+
+  const isEpisodeDownloaded = (episodeNumber) => downloadedEpisodes.includes(episodeNumber);
+
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-20">
       {/* Poster / Video Area */}
       <div className="relative w-full aspect-video bg-black">
         {!showVideo ? (
           <>
-            <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover" />
+            <img src={movie.backdrop || movie.poster} alt={movie.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a]/50 to-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
               <button onClick={() => setShowVideo(true)} className="w-20 h-20 rounded-full bg-emerald-500/90 hover:bg-emerald-400 flex items-center justify-center transition-all hover:scale-110">
@@ -229,7 +309,18 @@ export default function MovieDetailPage() {
       <div className="px-4 py-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white mb-2">{movie.title}</h1>
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-2xl font-bold text-white">{movie.title}</h1>
+              {isTVShow ? (
+                <span className="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded text-[10px] font-bold flex items-center gap-1">
+                  <Tv size={10} /> TV
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded text-[10px] font-bold flex items-center gap-1">
+                  <Film size={10} /> MOVIE
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
               <span className="flex items-center gap-1"><Calendar size={14} className="text-emerald-400" />{movie.year}</span>
               <span className="flex items-center gap-1"><Clock size={14} className="text-emerald-400" />{movie.duration}</span>
@@ -291,6 +382,46 @@ export default function MovieDetailPage() {
           </div>
         </div>
 
+        {/* Episode Downloads - TV Shows Only */}
+        {isTVShow && movie.episodes && (
+          <div className="mb-6">
+            <h3 className="text-white font-bold mb-3 text-sm flex items-center gap-2">
+              <Download size={16} className="text-emerald-400" /> 
+              Resource ({movie.episodes.length} Episodes)
+            </h3>
+            <div className="space-y-2">
+              {movie.episodes.map((ep) => (
+                <div 
+                  key={ep.number}
+                  className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-bold">{String(ep.number).padStart(2, '0')}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-medium truncate">{ep.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-gray-500 text-[10px]">{ep.size}</span>
+                      <span className="text-gray-600 text-[10px]">•</span>
+                      <span className="text-gray-500 text-[10px]">{ep.duration}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleEpisodeDownload(ep.number)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                      isEpisodeDownloaded(ep.number)
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700'
+                    }`}
+                  >
+                    {isEpisodeDownloaded(ep.number) ? 'Downloaded' : 'Download'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <button className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl border border-gray-700">
@@ -302,7 +433,7 @@ export default function MovieDetailPage() {
             <span className="text-[10px] text-gray-400">Share</span>
           </button>
           <button className="flex flex-col items-center gap-1 p-3 bg-gray-800 rounded-xl border border-gray-700 opacity-50">
-            <AlertTriangle className="w-6 h-6 text-gray-400" />
+            <X className="w-6 h-6 text-gray-400" />
             <span className="text-[10px] text-gray-400">Report</span>
           </button>
         </div>
@@ -448,13 +579,13 @@ export default function MovieDetailPage() {
             </div>
           )}
 
-          {/* Comments Tab */}
+          {/* Comments Tab - YouTube Style */}
           {activeTab === 'comments' && (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare size={16} className="text-emerald-400" />
-                  <span className="text-white text-sm font-medium">Comments</span>
+                  <span className="text-white text-sm font-medium">Comments ({comments.length})</span>
                 </div>
               </div>
 
@@ -467,6 +598,7 @@ export default function MovieDetailPage() {
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment..."
                     className="flex-1 bg-transparent text-white text-sm placeholder-gray-500 outline-none"
+                    onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                   />
                   <button
                     onClick={submitComment}
@@ -478,29 +610,135 @@ export default function MovieDetailPage() {
                 </div>
               </div>
 
-              {/* Comment List */}
-              <div className="space-y-3">
+              {/* Comment List - YouTube Style */}
+              <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-800 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{comment.userName?.[0]?.toUpperCase() || 'U'}</span>
-                        </div>
-                        <div>
-                          <p className="text-white text-xs font-medium">{comment.userName || 'User'}</p>
-                          <p className="text-gray-500 text-[10px]">{comment.date}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-gray-300 text-sm mb-2">{comment.text}</p>
+                  <div key={comment.id} className="flex gap-3">
+                    {/* Profile Avatar */}
                     <button 
-                      onClick={() => toggleCommentLike(comment.id)}
-                      className="flex items-center gap-1 text-gray-500 text-xs hover:text-emerald-400"
+                      onClick={() => navigate(`/profile/${comment.userId}`)}
+                      className="flex-shrink-0"
                     >
-                      <ThumbsUp size={12} className={comment.liked ? 'text-emerald-400 fill-emerald-400' : ''} />
-                      {comment.likes || 0}
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-800 flex items-center justify-center hover:ring-2 hover:ring-blue-400/50 transition-all">
+                        <span className="text-white text-sm font-bold">{comment.userName?.[0]?.toUpperCase() || 'U'}</span>
+                      </div>
                     </button>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Comment Header */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <button 
+                          onClick={() => navigate(`/profile/${comment.userId}`)}
+                          className="text-white text-xs font-medium hover:text-blue-400 transition-colors"
+                        >
+                          {comment.userName || 'User'}
+                        </button>
+                        <span className="text-gray-600 text-[10px]">{comment.date}</span>
+                      </div>
+
+                      {/* Comment Text */}
+                      <p className="text-gray-300 text-sm mb-2">{comment.text}</p>
+
+                      {/* Comment Actions */}
+                      <div className="flex items-center gap-4 mb-2">
+                        <button 
+                          onClick={() => toggleCommentLike(comment.id)}
+                          className="flex items-center gap-1 text-gray-500 text-xs hover:text-emerald-400"
+                        >
+                          <ThumbsUp size={12} className={comment.liked ? 'text-emerald-400 fill-emerald-400' : ''} />
+                          {comment.likes || 0}
+                        </button>
+                        <button 
+                          onClick={() => toggleCommentLike(comment.id, false)}
+                          className="flex items-center gap-1 text-gray-500 text-xs hover:text-red-400"
+                        >
+                          <ThumbsDown size={12} />
+                        </button>
+                        <button 
+                          onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          className="text-gray-500 text-xs hover:text-white font-medium"
+                        >
+                          Reply
+                        </button>
+                      </div>
+
+                      {/* Reply Input */}
+                      {replyingTo === comment.id && (
+                        <div className="flex items-center gap-2 mb-3 bg-white/5 rounded-lg p-2">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder={`Reply to ${comment.userName}...`}
+                            className="flex-1 bg-transparent text-white text-sm placeholder-gray-500 outline-none"
+                            onKeyDown={(e) => e.key === 'Enter' && submitReply(comment.id)}
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => submitReply(comment.id)}
+                            disabled={!replyText.trim()}
+                            className="text-emerald-400 text-xs font-bold disabled:opacity-30"
+                          >
+                            Reply
+                          </button>
+                          <button
+                            onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                            className="text-gray-500 text-xs"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div>
+                          <button
+                            onClick={() => toggleReplies(comment.id)}
+                            className="flex items-center gap-1 text-blue-400 text-xs font-medium mb-2 hover:text-blue-300"
+                          >
+                            {expandedReplies[comment.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                          </button>
+
+                          {expandedReplies[comment.id] && (
+                            <div className="space-y-3 ml-2 pl-3 border-l-2 border-white/10">
+                              {comment.replies.map((reply) => (
+                                <div key={reply.id} className="flex gap-2">
+                                  <button 
+                                    onClick={() => navigate(`/profile/${reply.userId}`)}
+                                    className="flex-shrink-0"
+                                  >
+                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-purple-800 flex items-center justify-center hover:ring-2 hover:ring-purple-400/50 transition-all">
+                                      <span className="text-white text-[10px] font-bold">{reply.userName?.[0]?.toUpperCase() || 'U'}</span>
+                                    </div>
+                                  </button>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <button 
+                                        onClick={() => navigate(`/profile/${reply.userId}`)}
+                                        className="text-white text-[10px] font-medium hover:text-purple-400 transition-colors"
+                                      >
+                                        {reply.userName || 'User'}
+                                      </button>
+                                      <span className="text-gray-600 text-[9px]">{reply.date}</span>
+                                    </div>
+                                    <p className="text-gray-400 text-xs mb-1">{reply.text}</p>
+                                    <button 
+                                      onClick={() => toggleCommentLike(reply.id, true, comment.id)}
+                                      className="flex items-center gap-1 text-gray-600 text-[10px] hover:text-emerald-400"
+                                    >
+                                      <ThumbsUp size={10} className={reply.liked ? 'text-emerald-400 fill-emerald-400' : ''} />
+                                      {reply.likes || 0}
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

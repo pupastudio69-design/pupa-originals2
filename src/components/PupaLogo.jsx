@@ -71,26 +71,35 @@ export default function PupaLogo({ size = 40, showText = true, animate = false }
         </svg>
       </div>
 
-      {/* Logo Text */}
+      {/* Logo Text - More Prominent */}
       {showText && (
         <div className="flex flex-col leading-none">
           <span
-            className="font-display font-semibold tracking-widest uppercase"
+            className="font-bold tracking-wider uppercase"
             style={{
-              fontSize: size * 0.32,
+              fontSize: size * 0.45,
               background: 'linear-gradient(135deg, #facc15 0%, #fde68a 40%, #d97706 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textShadow: '0 0 20px rgba(250,204,21,0.3)',
+              letterSpacing: '0.15em',
+            }}
+          >
+            PUPA
+          </span>
+          <span
+            className="font-semibold tracking-[0.4em] uppercase text-gray-300"
+            style={{ 
+              fontSize: size * 0.22,
+              marginTop: '2px',
+              background: 'linear-gradient(135deg, #facc15 0%, #fde68a 50%, #d97706 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}
           >
-            Pupa
-          </span>
-          <span
-            className="font-body font-light tracking-[0.35em] uppercase text-gray-300"
-            style={{ fontSize: size * 0.18 }}
-          >
-            Originals
+            ORIGINALS
           </span>
         </div>
       )}
