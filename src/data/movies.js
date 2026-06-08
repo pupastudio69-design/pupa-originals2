@@ -3,7 +3,6 @@
 const COLORS = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8', 'F7DC6F', 'BB8FCE', '85C1E9', 'FF8C94', 'A8E6CF'];
 const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
 
-// Random images from Unsplash
 const MOVIE_POSTERS = [
   'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop',
   'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=450&fit=crop',
@@ -82,13 +81,11 @@ export const NEW_RELEASES = ALL_MOVIES.filter(m => m.isNew).slice(0, 8);
 export const TOP_RATED = [...ALL_MOVIES].sort((a, b) => b.rating - a.rating).slice(0, 8);
 export const COMMUNITY_PICKS = ALL_MOVIES.slice(4, 12);
 
-// For You
 export const FOR_YOU = (userHistory = []) => {
   if (userHistory.length === 0) return TRENDING.slice(0, 8);
   return ALL_MOVIES.filter(m => userHistory.some(h => m.genre.includes(h))).slice(0, 8);
 };
 
-// TV Shows with episodes
 export const TV_SHOWS = Array.from({ length: 10 }, (_, i) => ({
   id: `show-${i}`,
   title: `Show ${i + 1}`,
@@ -114,7 +111,6 @@ export const TV_SHOWS = Array.from({ length: 10 }, (_, i) => ({
   ]
 }));
 
-// Upcoming releases
 export const UPCOMING = Array.from({ length: 6 }, (_, i) => ({
   id: `upcoming-${i}`,
   title: `Upcoming ${i + 1}`,
@@ -128,7 +124,6 @@ export const UPCOMING = Array.from({ length: 6 }, (_, i) => ({
   isNew: true
 }));
 
-// Categories for overlay
 export const CATEGORIES = [
   { id: 'action', name: 'Action', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=200&fit=crop' },
   { id: 'drama', name: 'Drama', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=200&fit=crop' },
@@ -141,7 +136,6 @@ export const CATEGORIES = [
   { id: 'hollywood', name: 'Hollywood', image: 'https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=200&fit=crop' },
 ];
 
-// Sections for CategoriesGrid
 export const ACTION = ALL_MOVIES.filter(m => m.category === 'action').slice(0, 8);
 export const DRAMA = ALL_MOVIES.filter(m => m.category === 'drama').slice(0, 8);
 export const COMEDY = ALL_MOVIES.filter(m => m.category === 'comedy').slice(0, 8);
