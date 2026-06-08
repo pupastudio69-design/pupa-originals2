@@ -1,17 +1,45 @@
 // PUPA Originals - Content Data
-// Replace poster URLs with your Bunny CDN links when ready
 
 const COLORS = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8', 'F7DC6F', 'BB8FCE', '85C1E9', 'FF8C94', 'A8E6CF'];
-
 const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
+
+// Random images from Unsplash
+const MOVIE_POSTERS = [
+  'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=300&h=450&fit=crop',
+];
+
+const BACKDROP_IMAGES = [
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&h=450&fit=crop',
+];
+
+const TV_IMAGES = [
+  'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=400&h=225&fit=crop',
+  'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=400&h=225&fit=crop',
+  'https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=400&h=225&fit=crop',
+  'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&h=225&fit=crop',
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=225&fit=crop',
+];
 
 export const TEST_VIDEO = {
   id: 'test-1',
   title: 'Pupa Originals Test',
   description: 'This is a test video for PUPA Originals platform.',
   youtubeId: 'dQw4w9WgXcQ',
-  poster: 'https://placehold.co/300x450/1a1a2e/FFD700?text=Pupa+Test',
-  backdrop: 'https://placehold.co/800x450/1a1a2e/FFD700?text=Pupa+Originals',
+  poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop',
+  backdrop: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=450&fit=crop',
   year: '2024',
   genre: ['Drama'],
   rating: 4.8,
@@ -20,18 +48,20 @@ export const TEST_VIDEO = {
   director: 'Test Director',
   isNew: true,
   isPupaOriginal: true,
-  type: 'movie'
+  type: 'movie',
+  category: 'hollywood',
+  likes: 1200
 };
 
 export const ALL_MOVIES = [
   TEST_VIDEO,
   ...Array.from({ length: 20 }, (_, i) => ({
-    id: `placeholder-${i}`,
+    id: `movie-${i}`,
     title: `Movie ${i + 1}`,
     description: 'Coming soon to PUPA Originals.',
     youtubeId: null,
-    poster: `https://placehold.co/300x450/1a1a2e/${getRandomColor()}?text=Movie+${i + 1}`,
-    backdrop: `https://placehold.co/800x450/1a1a2e/${getRandomColor()}?text=Movie+${i + 1}`,
+    poster: MOVIE_POSTERS[i % MOVIE_POSTERS.length],
+    backdrop: BACKDROP_IMAGES[i % BACKDROP_IMAGES.length],
     year: '2024',
     genre: ['Drama'],
     rating: 4.0 + Math.random() * 1.5,
@@ -40,7 +70,9 @@ export const ALL_MOVIES = [
     director: 'Director Name',
     isNew: i < 5,
     isPupaOriginal: i === 0,
-    type: 'movie'
+    type: 'movie',
+    category: ['action', 'drama', 'comedy', 'romance', 'thriller'][i % 5],
+    likes: Math.floor(Math.random() * 2000)
   }))
 ];
 
@@ -50,80 +82,81 @@ export const NEW_RELEASES = ALL_MOVIES.filter(m => m.isNew).slice(0, 8);
 export const TOP_RATED = [...ALL_MOVIES].sort((a, b) => b.rating - a.rating).slice(0, 8);
 export const COMMUNITY_PICKS = ALL_MOVIES.slice(4, 12);
 
-// For You - based on user preferences (default to trending)
+// For You
 export const FOR_YOU = (userHistory = []) => {
   if (userHistory.length === 0) return TRENDING.slice(0, 8);
   return ALL_MOVIES.filter(m => userHistory.some(h => m.genre.includes(h))).slice(0, 8);
 };
 
-// TV Shows with episodes and file sizes
-export const TV_SHOWS = Array.from({ length: 12 }, (_, i) => ({
+// TV Shows with episodes
+export const TV_SHOWS = Array.from({ length: 10 }, (_, i) => ({
   id: `show-${i}`,
-  title: `TV Show ${i + 1}`,
+  title: `Show ${i + 1}`,
   type: 'tv',
   seasons: 2,
-  totalEpisodes: 12,
+  episodes: 12,
   description: 'Coming soon to PUPA Originals.',
-  poster: `https://placehold.co/300x450/1a1a2e/${getRandomColor()}?text=Show+${i + 1}`,
-  backdrop: `https://placehold.co/800x450/1a1a2e/${getRandomColor()}?text=Show+${i + 1}`,
+  poster: TV_IMAGES[i % TV_IMAGES.length],
+  backdrop: TV_IMAGES[i % TV_IMAGES.length],
   year: '2024',
   genre: ['Drama'],
   rating: 4.0 + Math.random() * 1.5,
   isNew: i < 3,
-  isPupaOriginal: i === 0,
-  episodes: [
+  category: ['drama', 'action', 'thriller'][i % 3],
+  likes: Math.floor(Math.random() * 1500),
+  episodeList: [
     { number: 1, title: 'Pilot', size: '176.8MB', duration: '45:00' },
     { number: 2, title: 'The Next Day', size: '169.6MB', duration: '42:00' },
     { number: 3, title: 'New Beginnings', size: '182.3MB', duration: '48:00' },
-    { number: 4, title: 'The Truth', size: '175.1MB', duration: '46:00' },
-    { number: 5, title: 'Crossroads', size: '168.9MB', duration: '44:00' },
-    { number: 6, title: 'Revelations', size: '190.2MB', duration: '50:00' },
-    { number: 7, title: 'The Plan', size: '171.4MB', duration: '43:00' },
-    { number: 8, title: 'Dark Night', size: '185.7MB', duration: '47:00' },
-    { number: 9, title: 'Allies', size: '164.3MB', duration: '41:00' },
-    { number: 10, title: 'Betrayal', size: '178.5MB', duration: '45:00' },
-    { number: 11, title: 'The Escape', size: '173.2MB', duration: '44:00' },
-    { number: 12, title: 'Finale', size: '195.8MB', duration: '52:00' }
+    { number: 4, title: 'Dark Secrets', size: '175.1MB', duration: '44:00' },
+    { number: 5, title: 'The Truth', size: '190.5MB', duration: '50:00' },
+    { number: 6, title: 'Revelations', size: '168.9MB', duration: '41:00' },
   ]
 }));
 
-export const DOCUMENTARIES = Array.from({ length: 8 }, (_, i) => ({
-  id: `doc-${i}`,
-  title: `Documentary ${i + 1}`,
-  type: 'documentary',
+// Upcoming releases
+export const UPCOMING = Array.from({ length: 6 }, (_, i) => ({
+  id: `upcoming-${i}`,
+  title: `Upcoming ${i + 1}`,
+  type: i % 2 === 0 ? 'movie' : 'tv',
+  releaseDate: new Date(Date.now() + (i + 1) * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  poster: i % 2 === 0 ? MOVIE_POSTERS[i % MOVIE_POSTERS.length] : TV_IMAGES[i % TV_IMAGES.length],
+  backdrop: BACKDROP_IMAGES[i % BACKDROP_IMAGES.length],
   description: 'Coming soon to PUPA Originals.',
-  poster: `https://placehold.co/300x450/1a1a2e/${getRandomColor()}?text=Doc+${i + 1}`,
-  backdrop: `https://placehold.co/800x450/1a1a2e/${getRandomColor()}?text=Doc+${i + 1}`,
-  year: '2024',
-  genre: ['Documentary'],
-  rating: 4.2 + Math.random() * 1.0,
-  duration: '1:30:00'
+  genre: ['Drama'],
+  rating: 4.2 + Math.random(),
+  isNew: true
 }));
 
-export const ENTERTAINMENT = Array.from({ length: 8 }, (_, i) => ({
-  id: `ent-${i}`,
-  title: `Entertainment ${i + 1}`,
-  type: 'entertainment',
-  description: 'Coming soon to PUPA Originals.',
-  poster: `https://placehold.co/300x450/1a1a2e/${getRandomColor()}?text=Ent+${i + 1}`,
-  backdrop: `https://placehold.co/800x450/1a1a2e/${getRandomColor()}?text=Ent+${i + 1}`,
-  year: '2024',
-  genre: ['Entertainment'],
-  rating: 4.0 + Math.random() * 1.5,
-  duration: '1:00:00'
-}));
-
-// Upcoming Calendar - placeholder data
-export const UPCOMING = [
-  { id: 'up-1', title: 'Lagos Nights', type: 'movie', releaseDate: '2026-06-15', poster: 'https://placehold.co/300x450/1a1a2e/FF6B6B?text=Lagos+Nights' },
-  { id: 'up-2', title: 'Queen of Benin', type: 'tv', releaseDate: '2026-06-20', poster: 'https://placehold.co/300x450/1a1a2e/4ECDC4?text=Queen+of+Benin' },
-  { id: 'up-3', title: 'Afrobeats Rising', type: 'movie', releaseDate: '2026-06-25', poster: 'https://placehold.co/300x450/1a1a2e/FFEAA7?text=Afrobeats' },
-  { id: 'up-4', title: 'The Last Warrior', type: 'tv', releaseDate: '2026-07-01', poster: 'https://placehold.co/300x450/1a1a2e/DDA0DD?text=Last+Warrior' },
-  { id: 'up-5', title: 'Nollywood Dreams', type: 'movie', releaseDate: '2026-07-05', poster: 'https://placehold.co/300x450/1a1a2e/96CEB4?text=Nollywood' },
-  { id: 'up-6', title: 'Island Life', type: 'tv', releaseDate: '2026-07-10', poster: 'https://placehold.co/300x450/1a1a2e/85C1E9?text=Island+Life' }
+// Categories for overlay
+export const CATEGORIES = [
+  { id: 'action', name: 'Action', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=200&fit=crop' },
+  { id: 'drama', name: 'Drama', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=200&fit=crop' },
+  { id: 'comedy', name: 'Comedy', image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&h=200&fit=crop' },
+  { id: 'romance', name: 'Romance', image: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=300&h=200&fit=crop' },
+  { id: 'thriller', name: 'Thriller', image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=300&h=200&fit=crop' },
+  { id: 'horror', name: 'Horror', image: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=300&h=200&fit=crop' },
+  { id: 'documentary', name: 'Documentary', image: 'https://images.unsplash.com/photo-1533488765986-dfa2a9939acd?w=300&h=200&fit=crop' },
+  { id: 'nollywood', name: 'Nollywood', image: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300&h=200&fit=crop' },
+  { id: 'hollywood', name: 'Hollywood', image: 'https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=200&fit=crop' },
 ];
 
+// Sections for CategoriesGrid
+export const ACTION = ALL_MOVIES.filter(m => m.category === 'action').slice(0, 8);
+export const DRAMA = ALL_MOVIES.filter(m => m.category === 'drama').slice(0, 8);
+export const COMEDY = ALL_MOVIES.filter(m => m.category === 'comedy').slice(0, 8);
+export const ROMANCE = ALL_MOVIES.filter(m => m.category === 'romance').slice(0, 8);
+export const THRILLER = ALL_MOVIES.filter(m => m.category === 'thriller').slice(0, 8);
+export const CLASSIC = ALL_MOVIES.slice(0, 8);
+export const DOCUMENTARY = ALL_MOVIES.slice(8, 16);
+export const TOP_10 = [...ALL_MOVIES].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 10);
+
 export const getMovieById = (id) => {
-  const allContent = [...ALL_MOVIES, ...TV_SHOWS, ...DOCUMENTARIES, ...ENTERTAINMENT, ...UPCOMING];
+  const allContent = [...ALL_MOVIES, ...TV_SHOWS, ...UPCOMING];
   return allContent.find(item => item.id === id);
+};
+
+export const getContentByCategory = (categoryId) => {
+  if (categoryId === 'all') return [...ALL_MOVIES, ...TV_SHOWS];
+  return [...ALL_MOVIES, ...TV_SHOWS].filter(item => item.category === categoryId);
 };

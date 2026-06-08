@@ -23,6 +23,8 @@ import RewardsPage from './pages/RewardsPage';
 import ReferralsPage from './pages/ReferralsPage';
 import SettingsPage from './pages/SettingsPage';
 import SubscriptionPage from './pages/SubscriptionPage';
+import CategoryPage from './pages/CategoryPage';
+import UserProfilePage from './pages/UserProfilePage';
 
 // Auth
 import LoginPage from './pages/auth/LoginPage';
@@ -139,7 +141,8 @@ function MainLayout() {
           <Route path="/referrals" element={<ReferralsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
-          <Route path="/category/:id" element={<div className="pt-20 text-white text-center">Category Page Coming Soon</div>} />
+          <Route path="/category/:id" element={<CategoryPage />} />
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
