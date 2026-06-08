@@ -1,16 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, Bell, Play, Clock, Star, Calendar } from 'lucide-react';
-import { 
-  TRENDING, 
-  PUPA_ORIGINALS, 
-  NEW_RELEASES, 
-  TOP_RATED, 
-  TV_SHOWS, 
-  UPCOMING,
-  FOR_YOU,
-  CATEGORIES
-} from '../data/movies';
+
+// Safe import - if movies.js fails, use empty arrays
+let moviesData;
+try {
+  moviesData = require('../data/movies.js');
+} catch (e) {
+  console.error('Failed to load movies data:', e);
+  moviesData = {};
+}
+
+const {
+  TRENDING = [],
+  PUPA_ORIGINALS = [],
+  NEW_RELEASES = [],
+  TOP_RATED = [],
+  TV_SHOWS = [],
+  UPCOMING = [],
+  FOR_YOU = () => [],
+  CATEGORIES = []
+} = moviesData;
 
 // Hero Banner with Auto-Slide
 function HeroBanner() {
@@ -245,10 +255,11 @@ function StickySearchBar() {
 // Movie Card (2:3 portrait)
 function MovieCard({ movie }) {
   const navigate = useNavigate();
+  if (!movie) return null;
   return (
     <button onClick={() => navigate(`/movie/${movie.id}`)} className="flex-shrink-0 group relative" style={{ width: 130 }}>
       <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '2/3' }}>
-        <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+        <img src={movie.poster || 'https://via.placeholder.com/300x450'} alt={movie.title || 'Movie'} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         {movie.isNew && <span className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-md">NEW</span>}
         {movie.isPupaOriginal && <span className="absolute top-2 right-2 px-2 py-0.5 bg-yellow-400 text-black text-[10px] font-bold rounded-md">PUPA</span>}
@@ -258,10 +269,10 @@ function MovieCard({ movie }) {
           </div>
         </div>
       </div>
-      <p className="text-white text-xs font-medium mt-1.5 truncate text-left">{movie.title}</p>
+      <p className="text-white text-xs font-medium mt-1.5 truncate text-left">{movie.title || 'Untitled'}</p>
       <div className="flex items-center gap-1 mt-0.5">
         <Star size={10} className="text-yellow-400 fill-yellow-400" />
-        <span className="text-gray-500 text-[10px]">{movie.rating?.toFixed(1)}</span>
+        <span className="text-gray-500 text-[10px]">{movie.rating?.toFixed(1) || '0.0'}</span>
       </div>
     </button>
   );
@@ -270,15 +281,16 @@ function MovieCard({ movie }) {
 // TV Show Card (16:9 landscape)
 function TVShowCard({ show }) {
   const navigate = useNavigate();
+  if (!show) return null;
   return (
     <button onClick={() => navigate(`/movie/${show.id}`)} className="flex-shrink-0 group relative" style={{ width: 200 }}>
       <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
-        <img src={show.backdrop || show.poster} alt={show.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+        <img src={show.backdrop || show.poster || 'https://via.placeholder.com/400x225'} alt={show.title || 'Show'} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         {show.isNew && <span className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-md">NEW</span>}
         <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-white text-xs font-medium truncate">{show.title}</p>
-          <p className="text-gray-400 text-[10px]">{show.seasons} Season{show.seasons > 1 ? 's' : ''} · {show.episodes} Episodes</p>
+          <p className="text-white text-xs font-medium truncate">{show.title || 'Untitled'}</p>
+          <p className="text-gray-400 text-[10px]">{show.seasons || 1} Season{(show.seasons || 1) > 1 ? 's' : ''} · {show.episodes || 0} Episodes</p>
         </div>
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30">
           <div className="w-10 h-10 rounded-full bg-yellow-400/90 flex items-center justify-center">
@@ -291,12 +303,14 @@ function TVShowCard({ show }) {
 }
 
 // Content Row
-function ContentRow({ title, items, CardComponent = MovieCard, seeAllLink }) {
+function ContentRow({ title, items = [], CardComponent = MovieCard, seeAllLink }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const scroll = (direction) => {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: direction * 300, behavior: 'smooth' });
   };
+
+  if (!items || items.length === 0) return null;
 
   return (
     <div className="mb-6">
@@ -311,7 +325,7 @@ function ContentRow({ title, items, CardComponent = MovieCard, seeAllLink }) {
       <div className="relative">
         <div ref={scrollRef} className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
           {items.map((item) => (
-            <CardComponent key={item.id} movie={item} show={item} />
+            <CardComponent key={item?.id || Math.random()} movie={item} show={item} />
           ))}
         </div>
       </div>
@@ -321,23 +335,39 @@ function ContentRow({ title, items, CardComponent = MovieCard, seeAllLink }) {
 
 // Upcoming Calendar Row
 function UpcomingRow() {
-  const [reminders, setReminders] = useState(() => JSON.parse(localStorage.getItem('pupa_reminders') || '[]'));
+  const [reminders, setReminders] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('pupa_reminders') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   const toggleReminder = (id) => {
     const newReminders = reminders.includes(id) ? reminders.filter(r => r !== id) : [...reminders, id];
     setReminders(newReminders);
-    localStorage.setItem('pupa_reminders', JSON.stringify(newReminders));
+    try {
+      localStorage.setItem('pupa_reminders', JSON.stringify(newReminders));
+    } catch (e) {
+      console.error('Failed to save reminder:', e);
+    }
   };
 
   const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
-    if (diffDays <= 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays <= 7) return `${diffDays} days`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    try {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      if (diffDays <= 7) return `${diffDays} days`;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch {
+      return 'Soon';
+    }
   };
+
+  if (!UPCOMING || UPCOMING.length === 0) return null;
 
   return (
     <div className="mb-6">
@@ -349,24 +379,24 @@ function UpcomingRow() {
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
         {UPCOMING.map((item) => (
-          <div key={item.id} className="flex-shrink-0 relative rounded-xl overflow-hidden" style={{ width: 160, aspectRatio: '2/3' }}>
-            <img src={item.poster} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+          <div key={item?.id || Math.random()} className="flex-shrink-0 relative rounded-xl overflow-hidden" style={{ width: 160, aspectRatio: '2/3' }}>
+            <img src={item?.poster || 'https://via.placeholder.com/300x450'} alt={item?.title || 'Upcoming'} className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute top-2 left-2 right-2">
               <span className="px-2 py-0.5 bg-yellow-400/20 text-yellow-400 text-[10px] font-bold rounded-md backdrop-blur-sm">
-                {formatDate(item.releaseDate)}
+                {formatDate(item?.releaseDate)}
               </span>
             </div>
             <div className="absolute bottom-2 left-2 right-2">
-              <p className="text-white text-xs font-medium truncate">{item.title}</p>
-              <p className="text-gray-400 text-[10px]">{item.type === 'tv' ? 'TV Series' : 'Movie'}</p>
+              <p className="text-white text-xs font-medium truncate">{item?.title || 'Untitled'}</p>
+              <p className="text-gray-400 text-[10px]">{item?.type === 'tv' ? 'TV Series' : 'Movie'}</p>
               <button
-                onClick={(e) => { e.stopPropagation(); toggleReminder(item.id); }}
+                onClick={(e) => { e.stopPropagation(); toggleReminder(item?.id); }}
                 className={`mt-1.5 w-full py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                  reminders.includes(item.id) ? 'bg-yellow-400 text-black' : 'bg-white/10 text-white hover:bg-white/20'
+                  reminders.includes(item?.id) ? 'bg-yellow-400 text-black' : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
               >
-                {reminders.includes(item.id) ? 'Reminded' : 'Remind Me'}
+                {reminders.includes(item?.id) ? 'Reminded' : 'Remind Me'}
               </button>
             </div>
           </div>
@@ -378,7 +408,12 @@ function UpcomingRow() {
 
 // For You Row
 function ForYouRow() {
-  const forYouItems = FOR_YOU();
+  let forYouItems = [];
+  try {
+    forYouItems = FOR_YOU() || [];
+  } catch (e) {
+    console.error('FOR_YOU failed:', e);
+  }
   return <ContentRow title="For You" items={forYouItems} seeAllLink="/for-you" />;
 }
 
@@ -395,7 +430,6 @@ export default function HomePage({ onCategoriesOpen }) {
       <ContentRow title="New Releases" items={NEW_RELEASES} seeAllLink="/new" />
       <UpcomingRow />
       <ContentRow title="Top Rated" items={TOP_RATED} seeAllLink="/top-rated" />
-      <ContentRow title="Community Picks" items={COMMUNITY_PICKS} seeAllLink="/community" />
     </div>
   );
 }
