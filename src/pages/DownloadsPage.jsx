@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Download, Trash2, Play, WifiOff, AlertCircle, 
-  Check, X, ArrowLeft, Clock
+  X, ArrowLeft
 } from 'lucide-react';
-import { useSubscription } from '../contexts/SubscriptionContext';
 
 // Simple in-memory download manager using IndexedDB
 const DB_NAME = 'PupaDownloads';
@@ -69,12 +68,38 @@ const getAllVideos = async () => {
   });
 };
 
+// Check subscription from localStorage (replaces useSubscription)
+const useSubscriptionStatus = () => {
+  const [subscription, setSubscription] = useState(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pupa_subscription');
+      if (raw) setSubscription(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const isSubscribed = () => {
+    if (!subscription) return false;
+    if (subscription.status === 'trial') {
+      return new Date(subscription.expiryDate) > new Date();
+    }
+    return subscription.status === 'active';
+  };
+
+  const isPremium = () => {
+    return subscription?.planId === 'premium' && isSubscribed();
+  };
+
+  return { isSubscribed, isPremium };
+};
+
 // Test video for downloading (small file for testing)
-const TEST_DOWNLOAD_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'; // 10MB test video
+const TEST_DOWNLOAD_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 
 export default function DownloadsPage() {
   const navigate = useNavigate();
-  const { isPremium, isSubscribed } = useSubscription();
+  const { isPremium, isSubscribed } = useSubscriptionStatus();
   const [downloads, setDownloads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(null);
@@ -82,7 +107,6 @@ export default function DownloadsPage() {
   const [error, setError] = useState('');
   const [playingVideo, setPlayingVideo] = useState(null);
 
-  // Load saved downloads
   useEffect(() => {
     loadDownloads();
   }, []);
@@ -98,24 +122,12 @@ export default function DownloadsPage() {
     }
   };
 
-  // Check storage quota
-  const checkStorage = async () => {
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
-      const estimate = await navigator.storage.estimate();
-      const used = (estimate.usage || 0) / (1024 * 1024);
-      const total = (estimate.quota || 0) / (1024 * 1024);
-      return { used: used.toFixed(1), total: total.toFixed(1), available: ((total - used) / 1024).toFixed(2) };
-    }
-    return null;
-  };
-
   const handleDownload = async () => {
     if (!isSubscribed()) {
       setError('Subscribe to download content');
       return;
     }
 
-    // Basic plan: max 5 downloads
     if (!isPremium() && downloads.length >= 5) {
       setError('Basic plan: max 5 downloads. Upgrade to Premium for unlimited.');
       return;
@@ -126,7 +138,6 @@ export default function DownloadsPage() {
     setError('');
 
     try {
-      // Fetch with progress tracking
       const response = await fetch(TEST_DOWNLOAD_URL);
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
@@ -145,11 +156,9 @@ export default function DownloadsPage() {
         }
       }
 
-      // Combine chunks into blob
       const blob = new Blob(chunks);
       const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
 
-      // Save to IndexedDB
       await saveVideo('test-video', blob, {
         title: 'Big Buck Bunny (Test)',
         duration: '10:34',
@@ -182,7 +191,6 @@ export default function DownloadsPage() {
     try {
       const video = await getVideo(id);
       if (!video) return;
-      
       const url = URL.createObjectURL(video.blob);
       setPlayingVideo(url);
     } catch (err) {
@@ -197,7 +205,6 @@ export default function DownloadsPage() {
     }
   };
 
-  // Format date
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-NG', {
       day: 'numeric',
@@ -216,7 +223,6 @@ export default function DownloadsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-24">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-[#0a0a1a]/95 backdrop-blur-sm border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white">
@@ -227,7 +233,6 @@ export default function DownloadsPage() {
         </div>
       </div>
 
-      {/* Storage Info */}
       <div className="px-4 py-3">
         <div className="bg-white/5 rounded-xl p-3 border border-white/10">
           <div className="flex items-center justify-between mb-2">
@@ -248,7 +253,6 @@ export default function DownloadsPage() {
         </div>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mx-4 mb-4 bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-center gap-2">
           <AlertCircle size={16} className="text-red-400" />
@@ -256,7 +260,6 @@ export default function DownloadsPage() {
         </div>
       )}
 
-      {/* Download Test Button */}
       <div className="px-4 mb-4">
         <button
           onClick={handleDownload}
@@ -277,7 +280,6 @@ export default function DownloadsPage() {
         </button>
       </div>
 
-      {/* Downloads List */}
       <div className="px-4">
         {downloads.length === 0 ? (
           <div className="text-center py-12">
@@ -332,7 +334,6 @@ export default function DownloadsPage() {
         )}
       </div>
 
-      {/* Video Player Modal */}
       {playingVideo && (
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
           <div className="flex items-center justify-between p-4">
