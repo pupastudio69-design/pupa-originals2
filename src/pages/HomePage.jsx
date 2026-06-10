@@ -1,26 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, Bell, Play, Clock, Star, Calendar } from 'lucide-react';
-
-// Safe import - if movies.js fails, use empty arrays
-let moviesData;
-try {
-  moviesData = require('../data/movies.js');
-} catch (e) {
-  console.error('Failed to load movies data:', e);
-  moviesData = {};
-}
-
-const {
-  TRENDING = [],
-  PUPA_ORIGINALS = [],
-  NEW_RELEASES = [],
-  TOP_RATED = [],
-  TV_SHOWS = [],
-  UPCOMING = [],
-  FOR_YOU = () => [],
-  CATEGORIES = []
-} = moviesData;
+import {
+  TRENDING,
+  PUPA_ORIGINALS,
+  NEW_RELEASES,
+  TOP_RATED,
+  TV_SHOWS,
+  UPCOMING,
+  FOR_YOU,
+  CATEGORIES
+} from '../data/movies.js';
 
 // Hero Banner with Auto-Slide
 function HeroBanner() {

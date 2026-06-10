@@ -1,21 +1,23 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getMessaging } from 'firebase/messaging';
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyB2JLL58U7ZEKEx4GiDdCWTFNrLg3F-Of8",
   authDomain: "pupa-originals-new.firebaseapp.com",
   projectId: "pupa-originals-new",
   storageBucket: "pupa-originals-new.firebasestorage.app",
   messagingSenderId: "981860483022",
   appId: "1:981860483022:web:eb4dfc8f5378e61890b59f"
-};
+});
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const messaging = getMessaging(app);
-export { app };
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/pupa-icon.png'
+  };
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
