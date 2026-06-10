@@ -4,7 +4,6 @@ import { Analytics } from '@vercel/analytics/react';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { auth, app } from './firebase';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import SplashScreen from './components/SplashScreen';
 import TopNavbar from './components/TopNavbar';
 import BottomNavbar from './components/BottomNavbar';
@@ -220,28 +219,26 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <SubscriptionProvider>
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/welcome" element={
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/welcome" element={
+              <AuthGuard>
+                <WelcomePage />
+              </AuthGuard>
+            } />
+            <Route
+              path="/*"
+              element={
                 <AuthGuard>
-                  <WelcomePage />
+                  <MainLayout />
                 </AuthGuard>
-              } />
-              <Route
-                path="/*"
-                element={
-                  <AuthGuard>
-                    <MainLayout />
-                  </AuthGuard>
-                }
-              />
-            </Routes>
-          </ErrorBoundary>
-          <Analytics />
-        </SubscriptionProvider>
+              }
+            />
+          </Routes>
+        </ErrorBoundary>
+        <Analytics />
       </AuthProvider>
     </BrowserRouter>
   );
