@@ -89,21 +89,27 @@ export default function WelcomePage() {
     setLoading(true);
     setError('');
 
-    const productId = getProductId();
-    const result = await subscribe(productId);
+    try {
+      const productId = getProductId();
+      const result = await subscribe(productId);
 
-    if (result.success) {
-      localStorage.setItem('pupa_subscription', JSON.stringify({
-        planId: selectedPlan,
-        period: billingPeriod,
-        status: 'active',
-        purchaseToken: result.data.purchaseToken,
-        productId: productId
-      }));
-      alert('Subscription successful!');
-      navigate('/');
-    } else {
-      setError(result.error || 'Payment failed. Please try again.');
+      if (result.success) {
+        localStorage.setItem('pupa_subscription', JSON.stringify({
+          planId: selectedPlan,
+          period: billingPeriod,
+          status: 'active',
+          purchaseToken: result.data.purchaseToken,
+          productId: productId
+        }));
+        alert('Subscription successful!');
+        navigate('/');
+      } else {
+        setError(result.error || 'Payment failed. Please try again.');
+      }
+    } catch (err) {
+      // Fallback for development — Google Play Billing not ready yet
+      console.log('Billing not configured yet:', err);
+      setError('Google Play Billing will be available soon. Please check back later.');
     }
 
     setLoading(false);
