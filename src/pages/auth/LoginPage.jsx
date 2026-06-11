@@ -4,8 +4,7 @@ import {
   signInWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider,
-  isSignInWithEmailLink,
-  signInWithEmailLink
+  reload
 } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Chrome } from 'lucide-react';
@@ -16,56 +15,35 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [autoLoginMessage, setAutoLoginMessage] = useState('');
+  const [verifiedMessage, setVerifiedMessage] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Handle email link auto-login
+  // Check if user just verified email
   useEffect(() => {
-    const handleEmailLink = async () => {
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        setAutoLoginMessage('Verifying your email and logging you in...');
-        setLoading(true);
-
-        let emailFromStorage = window.localStorage.getItem('emailForSignIn');
-
-        // If no email in storage, try from URL params
-        if (!emailFromStorage) {
-          emailFromStorage = searchParams.get('email');
-        }
-
-        if (!emailFromStorage) {
-          setError('Please provide your email for confirmation.');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          await signInWithEmailLink(auth, emailFromStorage, window.location.href);
-          window.localStorage.removeItem('emailForSignIn');
-          setAutoLoginMessage('Email verified! Logging you in...');
-
-          // Small delay to show message, then redirect
-          setTimeout(() => {
-            navigate('/');
-          }, 1500);
-        } catch (err) {
-          setError('Failed to verify email. Please try logging in manually.');
-          setLoading(false);
-        }
-      }
-    };
-
-    handleEmailLink();
-  }, [navigate, searchParams]);
+    if (searchParams.get('verified') === 'true') {
+      setVerifiedMessage('Email verified! You can now log in.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check if email is verified
+      await reload(result.user);
+      if (!result.user.emailVerified) {
+        await auth.signOut();
+        setError('Please verify your email before logging in. Check your inbox for the verification link.');
+        setLoading(false);
+        return;
+      }
+
+      // Verified! Send to subscription page
+      navigate('/welcome');
     } catch (err) {
       setError(getErrorMessage(err.code));
     }
@@ -76,7 +54,7 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      navigate('/');
+      navigate('/welcome');
     } catch (err) {
       setError(getErrorMessage(err.code));
     }
@@ -90,6 +68,7 @@ export default function LoginPage() {
       'auth/too-many-requests': 'Too many attempts. Try again later',
       'auth/popup-closed-by-user': 'Sign in cancelled',
       'auth/invalid-credential': 'Invalid email or password',
+      'auth/user-disabled': 'This account has been disabled',
     };
     return messages[code] || 'Something went wrong. Please try again';
   };
@@ -102,10 +81,10 @@ export default function LoginPage() {
           <p className="text-gray-400 text-sm font-body">Welcome back</p>
         </div>
 
-        {/* Auto-login message */}
-        {autoLoginMessage && (
+        {/* Verified message */}
+        {verifiedMessage && (
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-4">
-            <p className="text-emerald-400 text-xs font-body">{autoLoginMessage}</p>
+            <p className="text-emerald-400 text-xs font-body">{verifiedMessage}</p>
           </div>
         )}
 
@@ -166,7 +145,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-white/10" />
           <span className="text-gray-500 text-xs font-body">or</span>
-          <div class1="flex-1 h-px bg-white/10" />
+          <div className="flex-1 h-px bg-white/10" />
         </div>
 
         <button

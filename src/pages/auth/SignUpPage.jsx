@@ -5,9 +5,7 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   updateProfile, 
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink
+  sendEmailVerification
 } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, Chrome } from 'lucide-react';
@@ -45,19 +43,17 @@ export default function SignUpPage() {
       // 2. Save their name
       await updateProfile(userCredential.user, { displayName: name });
 
-      // 3. Send email verification link that auto-logs in
-      const actionCodeSettings = {
-        url: window.location.origin + '/login?verified=true&email=' + encodeURIComponent(email),
-        handleCodeInApp: true,
-      };
+      // 3. Send standard email verification
+      await sendEmailVerification(userCredential.user, {
+        url: window.location.origin + '/login?verified=true',
+        handleCodeInApp: false,
+      });
 
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-
-      // 4. Save email locally so we can complete sign-in after they click the link
-      window.localStorage.setItem('emailForSignIn', email);
+      // 4. Sign out immediately — they must verify before using app
+      await auth.signOut();
 
       // 5. Show success message
-      setSuccessMessage('Account created! Please check your email and click the verification link to automatically log in.');
+      setSuccessMessage('Account created! Please check your email and click the verification link to activate your account.');
 
     } catch (err) {
       setError(getErrorMessage(err.code));
@@ -68,8 +64,11 @@ export default function SignUpPage() {
   const handleGoogleSignUp = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      navigate('/');
+      const result = await signInWithPopup(auth, provider);
+      // Google users are already verified, send them to subscription page
+      if (result.user.emailVerified) {
+        navigate('/welcome');
+      }
     } catch (err) {
       setError(getErrorMessage(err.code));
     }
@@ -97,9 +96,12 @@ export default function SignUpPage() {
         {successMessage && (
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-4">
             <p className="text-emerald-400 text-xs font-body">{successMessage}</p>
-            <p className="text-gray-400 text-xs font-body mt-2">
-              After clicking the link in your email, you will be automatically logged in.
-            </p>
+            <button 
+              onClick={() => navigate('/login')}
+              className="mt-2 w-full py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold"
+            >
+              Go to Login
+            </button>
           </div>
         )}
 

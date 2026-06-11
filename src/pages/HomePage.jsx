@@ -11,6 +11,33 @@ import {
   FOR_YOU,
   CATEGORIES
 } from '../data/movies.js';
+import { showInterstitialAd, isFreeTier } from '../services/ads';
+
+// Ad Banner Component for Free Users
+function AdBanner() {
+  if (!isFreeTier()) return null;
+  
+  return (
+    <div className="mx-4 mb-4 p-3 bg-gray-800/50 border border-gray-700/50 rounded-xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-400 text-xs">Advertisement</p>
+          <p className="text-gray-500 text-[10px]">Remove ads with Basic or Premium</p>
+        </div>
+        <button 
+          onClick={() => window.location.href = '/welcome'}
+          className="px-3 py-1.5 bg-yellow-400 text-black text-xs font-bold rounded-lg"
+        >
+          Upgrade
+        </button>
+      </div>
+      {/* Placeholder for actual ad */}
+      <div className="mt-2 h-16 bg-gray-700/30 rounded-lg flex items-center justify-center">
+        <p className="text-gray-600 text-xs">Ad Space</p>
+      </div>
+    </div>
+  );
+}
 
 // Hero Banner with Auto-Slide
 function HeroBanner() {
@@ -113,7 +140,10 @@ function HeroBanner() {
           </div>
           <div className="flex gap-3">
             <button 
-              onClick={() => navigate(`/movie/${slide.id}`)}
+              onClick={() => {
+                if (isFreeTier()) showInterstitialAd();
+                navigate(`/movie/${slide.id}`);
+              }}
               className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 text-black rounded-xl font-bold text-sm hover:bg-yellow-300 transition-colors"
             >
               <Play size={16} fill="black" /> Watch Now
@@ -247,7 +277,10 @@ function MovieCard({ movie }) {
   const navigate = useNavigate();
   if (!movie) return null;
   return (
-    <button onClick={() => navigate(`/movie/${movie.id}`)} className="flex-shrink-0 group relative" style={{ width: 130 }}>
+    <button onClick={() => {
+      if (isFreeTier()) showInterstitialAd();
+      navigate(`/movie/${movie.id}`);
+    }} className="flex-shrink-0 group relative" style={{ width: 130 }}>
       <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '2/3' }}>
         <img src={movie.poster || 'https://via.placeholder.com/300x450'} alt={movie.title || 'Movie'} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -273,7 +306,10 @@ function TVShowCard({ show }) {
   const navigate = useNavigate();
   if (!show) return null;
   return (
-    <button onClick={() => navigate(`/movie/${show.id}`)} className="flex-shrink-0 group relative" style={{ width: 200 }}>
+    <button onClick={() => {
+      if (isFreeTier()) showInterstitialAd();
+      navigate(`/movie/${show.id}`);
+    }} className="flex-shrink-0 group relative" style={{ width: 200 }}>
       <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
         <img src={show.backdrop || show.poster || 'https://via.placeholder.com/400x225'} alt={show.title || 'Show'} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -413,10 +449,26 @@ export default function HomePage({ onCategoriesOpen }) {
       <HeroBanner />
       <CategoriesRow onCategoriesOpen={onCategoriesOpen} />
       <StickySearchBar />
+      
+      {/* Ad Banner for Free Users */}
+      <AdBanner />
+      
       <ForYouRow />
+      
+      {/* Ad Banner between rows for Free Users */}
+      <AdBanner />
+      
       <ContentRow title="TV Shows" items={TV_SHOWS} CardComponent={TVShowCard} seeAllLink="/tv-shows" />
+      
+      {/* Ad Banner between rows for Free Users */}
+      <AdBanner />
+      
       <ContentRow title="Trending Now" items={TRENDING} seeAllLink="/trending" />
       <ContentRow title="Pupa Originals" items={PUPA_ORIGINALS} seeAllLink="/originals" />
+      
+      {/* Ad Banner between rows for Free Users */}
+      <AdBanner />
+      
       <ContentRow title="New Releases" items={NEW_RELEASES} seeAllLink="/new" />
       <UpcomingRow />
       <ContentRow title="Top Rated" items={TOP_RATED} seeAllLink="/top-rated" />

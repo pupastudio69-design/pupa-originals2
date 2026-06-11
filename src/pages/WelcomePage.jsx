@@ -1,9 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initializeBilling, subscribe } from '../services/billing';
-import { Check, Crown, Star, Zap, ArrowLeft } from 'lucide-react';
+import { Check, Crown, Star, Zap, ArrowLeft, Gift } from 'lucide-react';
 
 const PLANS = {
+  free: {
+    id: 'free',
+    name: 'Free',
+    price: '₦0',
+    period: '',
+    features: [
+      '480p Streaming Quality',
+      'Limited Movie Library',
+      '7-14 Day Release Delay',
+      'Ads on Every Screen',
+      'View-Only Comments',
+      'No Downloads',
+      'No Exclusive Content',
+      '1 Screen Only'
+    ],
+    hasAds: true,
+    quality: '480p',
+    screens: 1,
+    color: 'gray'
+  },
   basic: {
     id: 'basic',
     name: 'Basic',
@@ -11,17 +31,25 @@ const PLANS = {
       monthly: 'pupa_basic_monthly',
       yearly: 'pupa_basic_yearly'
     },
+    monthlyPrice: '₦3,000',
+    yearlyPrice: '₦30,000',
+    period: 'month',
     features: [
-      'Standard Streaming Quality',
-      '30-60 Movie Library',
-      'Delayed New Releases (7-14 days)',
-      'Light Ads & Sponsored Messages',
-      'View-Only Comments',
-      'No Downloads',
-      'No Exclusive Content',
-      'No Early Releases',
-      'Silver PUPA Badge on Profile'
-    ]
+      '720p HD Streaming',
+      'Full Movie Library',
+      'Immediate New Releases',
+      'No Ads — Ever',
+      'Full Comments & Interaction',
+      '5 Downloads Max',
+      'Exclusive Content Access',
+      '1 Screen Only',
+      'Silver PUPA Badge'
+    ],
+    hasAds: false,
+    quality: '720p',
+    screens: 1,
+    color: 'emerald',
+    popular: false
   },
   premium: {
     id: 'premium',
@@ -30,6 +58,9 @@ const PLANS = {
       monthly: 'pupa_premium_monthly',
       yearly: 'pupa_premium_yearly'
     },
+    monthlyPrice: '₦5,500',
+    yearlyPrice: '₦55,000',
+    period: 'month',
     features: [
       '4K Ultra HD Streaming',
       'Unlimited Movie Library',
@@ -38,11 +69,14 @@ const PLANS = {
       'Full Comments & Interaction',
       'Unlimited Downloads',
       'Exclusive Content Access',
-      'Early Releases & Voting Power',
-      'BTS Content & Creator Gifts',
-      'Gold PUPA Badge on Profile',
+      '4 Screens Simultaneously',
+      'Gold PUPA Badge',
       'Priority Support'
     ],
+    hasAds: false,
+    quality: '4K',
+    screens: 4,
+    color: 'yellow',
     popular: true
   }
 };
@@ -69,10 +103,12 @@ export default function WelcomePage() {
   };
 
   const getProductId = () => {
+    if (selectedPlan === 'free') return null;
     return PLANS[selectedPlan].productIds[billingPeriod];
   };
 
   const getPrice = () => {
+    if (selectedPlan === 'free') return 'Free';
     const productId = getProductId();
     const product = products[productId];
     if (product) {
@@ -80,12 +116,25 @@ export default function WelcomePage() {
     }
     // Fallback prices while loading
     if (billingPeriod === 'yearly') {
-      return selectedPlan === 'premium' ? '₦40,000' : '₦25,000';
+      return selectedPlan === 'premium' ? '₦55,000' : '₦30,000';
     }
-    return selectedPlan === 'premium' ? '₦4,000' : '₦2,500';
+    return selectedPlan === 'premium' ? '₦5,500' : '₦3,000';
   };
 
   const handleSubscribe = async () => {
+    // Free tier selected
+    if (selectedPlan === 'free') {
+      localStorage.setItem('pupa_subscription', JSON.stringify({
+        planId: 'free',
+        plan: 'free',
+        status: 'active',
+        period: 'free',
+        startDate: new Date().toISOString(),
+      }));
+      navigate('/');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -99,7 +148,8 @@ export default function WelcomePage() {
           period: billingPeriod,
           status: 'active',
           purchaseToken: result.data.purchaseToken,
-          productId: productId
+          productId: productId,
+          startDate: new Date().toISOString(),
         }));
         alert('Subscription successful!');
         navigate('/');
@@ -107,12 +157,33 @@ export default function WelcomePage() {
         setError(result.error || 'Payment failed. Please try again.');
       }
     } catch (err) {
-      // Fallback for development — Google Play Billing not ready yet
+      // Fallback for development
       console.log('Billing not configured yet:', err);
       setError('Google Play Billing will be available soon. Please check back later.');
     }
 
     setLoading(false);
+  };
+
+  const getPlanColor = (planId) => {
+    if (planId === 'free') return {
+      bg: 'bg-gray-500/10',
+      border: 'border-gray-500/30',
+      text: 'text-gray-400',
+      icon: 'text-gray-400'
+    };
+    if (planId === 'basic') return {
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/30',
+      text: 'text-emerald-400',
+      icon: 'text-emerald-400'
+    };
+    return {
+      bg: 'bg-yellow-500/10',
+      border: 'border-yellow-500/30',
+      text: 'text-yellow-400',
+      icon: 'text-yellow-400'
+    };
   };
 
   return (
@@ -124,37 +195,43 @@ export default function WelcomePage() {
           <span className="text-sm">Back to Home</span>
         </button>
         <h1 className="text-2xl font-bold text-white mb-2">Choose Your Plan</h1>
-        <p className="text-gray-400 text-sm">Subscribe via Google Play Billing</p>
-      </div>
-
-      {/* Billing Period Toggle */}
-      <div className="px-5 mb-6">
-        <div className="flex rounded-xl bg-white/5 p-1">
-          <button
-            onClick={() => setBillingPeriod('monthly')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-              billingPeriod === 'monthly' 
-                ? 'bg-emerald-600 text-white' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBillingPeriod('yearly')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-              billingPeriod === 'yearly' 
-                ? 'bg-emerald-600 text-white' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Yearly
-          </button>
-        </div>
+        <p className="text-gray-400 text-sm">Start watching premium African cinema</p>
       </div>
 
       {/* Plan Cards */}
       <div className="px-5 space-y-4 mb-6">
+        {/* Free Plan */}
+        <button
+          onClick={() => setSelectedPlan('free')}
+          className={`w-full p-5 rounded-2xl text-left transition-all border ${
+            selectedPlan === 'free'
+              ? 'bg-gray-500/10 border-gray-500/30'
+              : 'bg-white/5 border-white/10 hover:bg-white/10'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Star size={20} className="text-gray-400" />
+              <span className="text-white font-bold">Free</span>
+            </div>
+            <div className="text-right">
+              <span className="text-white font-bold text-lg">₦0</span>
+              <span className="text-gray-400 text-xs block">forever</span>
+            </div>
+          </div>
+          <ul className="space-y-2">
+            {PLANS.free.features.slice(0, 4).map((feature, i) => (
+              <li key={i} className="flex items-center gap-2 text-gray-400 text-xs">
+                <Check size={14} className="text-gray-500 flex-shrink-0" />
+                {feature}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 px-2 py-1 bg-red-500/10 border border-red-500/20 rounded-lg inline-block">
+            <span className="text-red-400 text-[10px] font-bold">ADS INCLUDED</span>
+          </div>
+        </button>
+
         {/* Basic Plan */}
         <button
           onClick={() => setSelectedPlan('basic')}
@@ -217,6 +294,34 @@ export default function WelcomePage() {
         </button>
       </div>
 
+      {/* Billing Period Toggle (only for paid plans) */}
+      {selectedPlan !== 'free' && (
+        <div className="px-5 mb-6">
+          <div className="flex rounded-xl bg-white/5 p-1">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                billingPeriod === 'monthly' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingPeriod('yearly')}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                billingPeriod === 'yearly' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Yearly
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div className="px-5 mb-4">
@@ -233,16 +338,28 @@ export default function WelcomePage() {
           disabled={loading}
           className="w-full py-4 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {loading ? 'Processing...' : (
+          {loading ? 'Processing...' : selectedPlan === 'free' ? (
+            <>
+              <Zap size={18} />
+              Start Free with Ads
+            </>
+          ) : (
             <>
               <Zap size={18} />
               Subscribe with Google Play
             </>
           )}
         </button>
-        <p className="text-gray-600 text-xs text-center mt-3">
-          Payments processed securely by Google Play Billing
-        </p>
+        {selectedPlan === 'free' && (
+          <p className="text-gray-600 text-xs text-center mt-3">
+            Free tier includes ads. Upgrade anytime to remove ads and unlock premium features.
+          </p>
+        )}
+        {selectedPlan !== 'free' && (
+          <p className="text-gray-600 text-xs text-center mt-3">
+            Payments processed securely by Google Play Billing
+          </p>
+        )}
       </div>
     </div>
   );
