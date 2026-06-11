@@ -2,9 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Play, Plus, ThumbsUp, Share2, Download, ChevronLeft, Star, 
-  Clock, Calendar, MessageSquare, Send, Heart, ChevronDown, ChevronUp
+  Clock, Calendar, MessageSquare, Send, Heart, ChevronDown, ChevronUp,
+  Gift, Coins, X
 } from 'lucide-react';
 import { getMovieById } from '../data/movies';
+import { showInterstitialAd, isFreeTier } from '../services/ads';
+
+// Coin packages
+const COIN_PACKAGES = [
+  { id: 'coins-100', coins: 100, price: 500, label: '100 Coins' },
+  { id: 'coins-250', coins: 250, price: 1000, label: '250 Coins' },
+  { id: 'coins-500', coins: 500, price: 2000, label: '500 Coins' },
+  { id: 'coins-1000', coins: 1000, price: 3500, label: '1000 Coins' }
+];
 
 // Mock comments data with replies
 const MOCK_COMMENTS = [
@@ -323,6 +333,136 @@ function EpisodeItem({ episode }) {
   );
 }
 
+// Coin Gift Modal
+function CoinGiftModal({ onClose, movieTitle }) {
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [userCoins, setUserCoins] = useState(() => {
+    return parseInt(localStorage.getItem('pupa_coins') || '0');
+  });
+  const [showPurchase, setShowPurchase] = useState(false);
+
+  const handleGift = () => {
+    if (!selectedPackage) return;
+    if (userCoins < selectedPackage.coins) {
+      setShowPurchase(true);
+      return;
+    }
+
+    // Deduct coins
+    const newBalance = userCoins - selectedPackage.coins;
+    setUserCoins(newBalance);
+    localStorage.setItem('pupa_coins', newBalance.toString());
+
+    // Save gift record
+    const gifts = JSON.parse(localStorage.getItem('pupa_gifts') || '[]');
+    gifts.push({
+      movieTitle,
+      coins: selectedPackage.coins,
+      date: new Date().toISOString()
+    });
+    localStorage.setItem('pupa_gifts', JSON.stringify(gifts));
+
+    alert(`You gifted ${selectedPackage.coins} coins for "${movieTitle}"!`);
+    onClose();
+  };
+
+  const handlePurchaseCoins = (pkg) => {
+    // For now, just add coins (in production, this would use Google Play Billing)
+    const newBalance = userCoins + pkg.coins;
+    setUserCoins(newBalance);
+    localStorage.setItem('pupa_coins', newBalance.toString());
+    setShowPurchase(false);
+    alert(`Purchased ${pkg.coins} coins!`);
+  };
+
+  if (showPurchase) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+        <div className="bg-[#0a0a1a] rounded-2xl p-6 w-full max-w-sm border border-white/10">
+          <h3 className="text-white font-bold text-lg mb-2">Buy Coins</h3>
+          <p className="text-gray-400 text-sm mb-4">You need more coins to gift. Choose a package:</p>
+
+          <div className="space-y-2 mb-4">
+            {COIN_PACKAGES.map((pkg) => (
+              <button
+                key={pkg.id}
+                onClick={() => handlePurchaseCoins(pkg)}
+                className="w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-left flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-white text-sm font-medium">{pkg.label}</p>
+                  <p className="text-gray-500 text-xs">₦{pkg.price.toLocaleString()}</p>
+                </div>
+                <Coins size={18} className="text-yellow-400" />
+              </button>
+            ))}
+          </div>
+
+          <button onClick={() => setShowPurchase(false)} className="w-full py-2 rounded-xl bg-white/5 text-gray-400 text-sm">
+            Back to Gift
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="bg-[#0a0a1a] rounded-2xl p-6 w-full max-w-sm border border-white/10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-bold text-lg">Gift Coins</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+
+        <p className="text-gray-400 text-sm mb-2">Movie: <span className="text-white">{movieTitle}</span></p>
+        <p className="text-yellow-400 text-sm mb-4">Your balance: {userCoins} coins</p>
+
+        <div className="space-y-2 mb-4">
+          {COIN_PACKAGES.map((pkg) => (
+            <button
+              key={pkg.id}
+              onClick={() => setSelectedPackage(pkg)}
+              className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                selectedPackage?.id === pkg.id
+                  ? 'bg-yellow-500/10 border-yellow-500/30'
+                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+              }`}
+            >
+              <div>
+                <p className="text-white text-sm font-medium">{pkg.label}</p>
+                <p className="text-gray-500 text-xs">₦{pkg.price.toLocaleString()}</p>
+              </div>
+              <Coins size={18} className={selectedPackage?.id === pkg.id ? 'text-yellow-400' : 'text-gray-500'} />
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={handleGift}
+          disabled={!selectedPackage}
+          className="w-full py-3 rounded-xl bg-yellow-400 text-black font-bold text-sm disabled:opacity-50"
+        >
+          {selectedPackage ? `Gift ${selectedPackage.coins} Coins` : 'Select Amount'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Users icon helper
+function UsersIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 export default function MovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -336,6 +476,7 @@ export default function MovieDetailPage() {
   });
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState(MOCK_COMMENTS);
+  const [showGiftModal, setShowGiftModal] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
 
@@ -438,7 +579,13 @@ export default function MovieDetailPage() {
         </div>
 
         <div className="flex gap-3 mb-6">
-          <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-yellow-400 text-black rounded-xl font-bold text-sm hover:bg-yellow-300 transition-colors">
+          <button 
+            onClick={() => {
+              if (isFreeTier()) showInterstitialAd();
+              // Play video logic here
+            }}
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-yellow-400 text-black rounded-xl font-bold text-sm hover:bg-yellow-300 transition-colors"
+          >
             <Play size={18} fill="black" /> Watch Now
           </button>
           <button onClick={handleWatchlist} className={`flex items-center justify-center gap-2 px-4 rounded-xl font-medium text-sm transition-colors ${
@@ -448,6 +595,15 @@ export default function MovieDetailPage() {
             {isInWatchlist ? 'Added' : 'Watchlist'}
           </button>
         </div>
+
+        {/* Gift Coins Button */}
+        <button
+          onClick={() => setShowGiftModal(true)}
+          className="w-full py-3 mb-6 rounded-xl bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-yellow-400 font-medium text-sm hover:from-yellow-500/30 hover:to-amber-500/30 transition-all flex items-center justify-center gap-2"
+        >
+          <Gift size={18} />
+          Gift Coins to Support This Movie
+        </button>
 
         <div className="flex items-center justify-around mb-6 pb-6 border-b border-white/5">
           <button onClick={() => setIsLiked(!isLiked)} className={`flex flex-col items-center gap-1 transition-colors ${isLiked ? 'text-yellow-400' : 'text-gray-400 hover:text-white'}`}>
@@ -562,17 +718,14 @@ export default function MovieDetailPage() {
           </div>
         )}
       </div>
-    </div>
-  );
-}
 
-function UsersIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
+      {/* Coin Gift Modal */}
+      {showGiftModal && (
+        <CoinGiftModal 
+          onClose={() => setShowGiftModal(false)} 
+          movieTitle={movie.title} 
+        />
+      )}
+    </div>
   );
 }
