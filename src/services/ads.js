@@ -1,7 +1,18 @@
 // AdMob integration for Pupa Originals
 // Shows ads only for free tier users
+// NOTE: Install @capacitor-community/admob when ready for production
 
-import { AdMob } from '@capacitor-community/admob';
+let AdMob = null;
+let bannerVisible = false;
+
+// Try to import AdMob, but don't crash if not installed
+try {
+  // This will work once @capacitor-community/admob is installed
+  const admobModule = await import('@capacitor-community/admob');
+  AdMob = admobModule.AdMob;
+} catch (e) {
+  console.log('AdMob not installed yet. Ads will be placeholders.');
+}
 
 const AD_IDS = {
   banner: 'ca-app-pub-3940256099942544/6300978111',      // Test ID
@@ -9,12 +20,10 @@ const AD_IDS = {
   rewarded: 'ca-app-pub-3940256099942544/5224354917',     // Test ID
 };
 
-let bannerVisible = false;
-
 // Check if user is on free tier
 export const isFreeTier = () => {
   const sub = localStorage.getItem('pupa_subscription');
-  if (!sub) return true; // No subscription = free tier
+  if (!sub) return true;
   try {
     const data = JSON.parse(sub);
     return !data.planId || data.planId === 'free';
@@ -25,7 +34,11 @@ export const isFreeTier = () => {
 
 // Initialize AdMob
 export const initializeAds = async () => {
-  if (!isFreeTier()) return; // No ads for subscribers
+  if (!isFreeTier()) return;
+  if (!AdMob) {
+    console.log('AdMob not available - skipping init');
+    return;
+  }
   try {
     await AdMob.initialize({
       requestTrackingAuthorization: true,
@@ -40,12 +53,16 @@ export const initializeAds = async () => {
 // Show banner ad
 export const showBannerAd = async () => {
   if (!isFreeTier()) return;
+  if (!AdMob) {
+    console.log('AdMob not available - banner is placeholder');
+    return;
+  }
   if (bannerVisible) return;
   try {
     await AdMob.showBanner({
       adId: AD_IDS.banner,
       position: 'bottom',
-      margin: 60, // Above bottom navbar
+      margin: 60,
     });
     bannerVisible = true;
   } catch (error) {
@@ -56,6 +73,7 @@ export const showBannerAd = async () => {
 // Hide banner ad
 export const hideBannerAd = async () => {
   if (!bannerVisible) return;
+  if (!AdMob) return;
   try {
     await AdMob.hideBanner();
     bannerVisible = false;
@@ -67,6 +85,10 @@ export const hideBannerAd = async () => {
 // Show interstitial ad (between content)
 export const showInterstitialAd = async () => {
   if (!isFreeTier()) return;
+  if (!AdMob) {
+    console.log('AdMob not available - interstitial skipped');
+    return;
+  }
   try {
     await AdMob.prepareInterstitial({
       adId: AD_IDS.interstitial,
@@ -79,6 +101,10 @@ export const showInterstitialAd = async () => {
 
 // Show rewarded ad (for coins)
 export const showRewardedAd = async () => {
+  if (!AdMob) {
+    console.log('AdMob not available - rewarded ad skipped');
+    return { success: false, error: 'AdMob not installed' };
+  }
   try {
     await AdMob.prepareRewardVideoAd({
       adId: AD_IDS.rewarded,
@@ -94,6 +120,7 @@ export const showRewardedAd = async () => {
 // Remove banner when component unmounts
 export const removeBannerAd = async () => {
   if (!bannerVisible) return;
+  if (!AdMob) return;
   try {
     await AdMob.removeBanner();
     bannerVisible = false;
