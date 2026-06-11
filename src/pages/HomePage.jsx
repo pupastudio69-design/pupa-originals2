@@ -16,7 +16,7 @@ import { showInterstitialAd, isFreeTier } from '../services/ads';
 // Ad Banner Component for Free Users
 function AdBanner() {
   if (!isFreeTier()) return null;
-  
+
   return (
     <div className="mx-4 mb-4 p-3 bg-gray-800/50 border border-gray-700/50 rounded-xl">
       <div className="flex items-center justify-between">
@@ -31,7 +31,6 @@ function AdBanner() {
           Upgrade
         </button>
       </div>
-      {/* Placeholder for actual ad */}
       <div className="mt-2 h-16 bg-gray-700/30 rounded-lg flex items-center justify-center">
         <p className="text-gray-600 text-xs">Ad Space</p>
       </div>
@@ -447,31 +446,47 @@ export default function HomePage({ onCategoriesOpen }) {
   return (
     <div className="min-h-screen bg-[#0a0a1a] pb-24">
       <HeroBanner />
+
+      {/* Ad Banner after hero for Free Users */}
+      <AdBanner />
+
       <CategoriesRow onCategoriesOpen={onCategoriesOpen} />
       <StickySearchBar />
-      
-      {/* Ad Banner for Free Users */}
-      <AdBanner />
-      
+
       <ForYouRow />
-      
+
       {/* Ad Banner between rows for Free Users */}
       <AdBanner />
-      
+
       <ContentRow title="TV Shows" items={TV_SHOWS} CardComponent={TVShowCard} seeAllLink="/tv-shows" />
-      
+
       {/* Ad Banner between rows for Free Users */}
       <AdBanner />
-      
+
       <ContentRow title="Trending Now" items={TRENDING} seeAllLink="/trending" />
-      <ContentRow title="Pupa Originals" items={PUPA_ORIGINALS} seeAllLink="/originals" />
-      
+
       {/* Ad Banner between rows for Free Users */}
       <AdBanner />
-      
+
+      <ContentRow title="Pupa Originals" items={PUPA_ORIGINALS} seeAllLink="/originals" />
+
+      {/* Ad Banner between rows for Free Users */}
+      <AdBanner />
+
       <ContentRow title="New Releases" items={NEW_RELEASES} seeAllLink="/new" />
+
+      {/* Ad Banner between rows for Free Users */}
+      <AdBanner />
+
       <UpcomingRow />
+
+      {/* Ad Banner before top rated for Free Users */}
+      <AdBanner />
+
       <ContentRow title="Top Rated" items={TOP_RATED} seeAllLink="/top-rated" />
+
+      {/* Bottom Ad Banner for Free Users */}
+      <AdBanner />
     </div>
   );
 }

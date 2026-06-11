@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initializeBilling, subscribe } from '../services/billing';
-import { Check, Crown, Star, Zap, ArrowLeft, Gift } from 'lucide-react';
+import { Check, Crown, Star, Zap, ArrowLeft } from 'lucide-react';
 
 const PLANS = {
   free: {
@@ -114,7 +114,6 @@ export default function WelcomePage() {
     if (product) {
       return product.price;
     }
-    // Fallback prices while loading
     if (billingPeriod === 'yearly') {
       return selectedPlan === 'premium' ? '₦55,000' : '₦30,000';
     }
@@ -122,7 +121,6 @@ export default function WelcomePage() {
   };
 
   const handleSubscribe = async () => {
-    // Free tier selected
     if (selectedPlan === 'free') {
       localStorage.setItem('pupa_subscription', JSON.stringify({
         planId: 'free',
@@ -157,7 +155,6 @@ export default function WelcomePage() {
         setError(result.error || 'Payment failed. Please try again.');
       }
     } catch (err) {
-      // Fallback for development
       console.log('Billing not configured yet:', err);
       setError('Google Play Billing will be available soon. Please check back later.');
     }
@@ -165,30 +162,8 @@ export default function WelcomePage() {
     setLoading(false);
   };
 
-  const getPlanColor = (planId) => {
-    if (planId === 'free') return {
-      bg: 'bg-gray-500/10',
-      border: 'border-gray-500/30',
-      text: 'text-gray-400',
-      icon: 'text-gray-400'
-    };
-    if (planId === 'basic') return {
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/30',
-      text: 'text-emerald-400',
-      icon: 'text-emerald-400'
-    };
-    return {
-      bg: 'bg-yellow-500/10',
-      border: 'border-yellow-500/30',
-      text: 'text-yellow-400',
-      icon: 'text-yellow-400'
-    };
-  };
-
   return (
     <div className="min-h-screen bg-[#0a0a1a] flex flex-col">
-      {/* Header */}
       <div className="px-5 pt-12 pb-4">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-gray-400 mb-4">
           <ArrowLeft size={20} />
@@ -198,7 +173,6 @@ export default function WelcomePage() {
         <p className="text-gray-400 text-sm">Start watching premium African cinema</p>
       </div>
 
-      {/* Plan Cards */}
       <div className="px-5 space-y-4 mb-6">
         {/* Free Plan */}
         <button
@@ -294,7 +268,6 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* Billing Period Toggle (only for paid plans) */}
       {selectedPlan !== 'free' && (
         <div className="px-5 mb-6">
           <div className="flex rounded-xl bg-white/5 p-1">
@@ -322,7 +295,6 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="px-5 mb-4">
           <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
@@ -331,7 +303,6 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* Subscribe Button */}
       <div className="px-5 pb-8">
         <button
           onClick={handleSubscribe}
