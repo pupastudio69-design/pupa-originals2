@@ -43,17 +43,27 @@ export default function SignUpPage() {
       // 2. Save their name
       await updateProfile(userCredential.user, { displayName: name });
 
-      // 3. Send standard email verification
-      await sendEmailVerification(userCredential.user, {
-        url: window.location.origin + '/login?verified=true',
-        handleCodeInApp: false,
-      });
+      // 3. Send standard email verification with proper action code settings
+      try {
+        await sendEmailVerification(userCredential.user, {
+          url: 'https://pupaoriginals.com/login?verified=true',
+          handleCodeInApp: false,
+        });
+        console.log('Verification email sent successfully');
+      } catch (verifyError) {
+        console.error('Failed to send verification email:', verifyError);
+        // Don't block sign-up if verification fails - just warn user
+        setError('Account created but verification email failed to send. Please contact support.');
+        await auth.signOut();
+        setLoading(false);
+        return;
+      }
 
       // 4. Sign out immediately — they must verify before using app
       await auth.signOut();
 
       // 5. Show success message
-      setSuccessMessage('Account created! Please check your email and click the verification link to activate your account.');
+      setSuccessMessage('Account created! Please check your email (including spam folder) and click the verification link to activate your account.');
 
     } catch (err) {
       setError(getErrorMessage(err.code));
@@ -80,6 +90,7 @@ export default function SignUpPage() {
       'auth/invalid-email': 'Invalid email address',
       'auth/weak-password': 'Password should be at least 6 characters',
       'auth/popup-closed-by-user': 'Sign up cancelled',
+      'auth/too-many-requests': 'Too many attempts. Try again later.',
     };
     return messages[code] || 'Something went wrong. Please try again';
   };
